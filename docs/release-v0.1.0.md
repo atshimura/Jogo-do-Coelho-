@@ -21,4 +21,5 @@
 - APK: Coelhitos-v0.1.0-debug.apk
 - SHA-256: 43a0447789acfb9f6415b4b9e7f357b8968a77badb01035f05a5ffc82035b40f
 - Assinatura: validada com apksigner.
+- Compilação Gradle confirmada com sucesso no GitHub Actions; o workflow também publicou um artefato de CI para download.
 - Observação: o APK ainda não foi testado num aparelho Android ou emulador nesta sessão.

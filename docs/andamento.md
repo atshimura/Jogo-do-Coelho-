@@ -39,5 +39,6 @@ Este arquivo acompanha a implementação em etapas, conforme solicitado. Cada et
 - Assinatura de depuração conferida pelo apksigner; DEX gerado pelo D8 e APK alinhado pelo zipalign.
 - SHA-256: `43a0447789acfb9f6415b4b9e7f357b8968a77badb01035f05a5ffc82035b40f`.
 - Foi incluído fluxo GitHub Actions para compilar e publicar o APK debug como artefato em futuras execuções.
+- A execução GitHub Actions #2 concluiu com sucesso: Gradle executou `assembleDebug` e o upload do artefato também passou. O artefato de CI fica disponível na execução por 30 dias.
 - Limite desta validação: não havia aparelho Android nem emulador conectado. O controle por toque, o ritmo de 3 minutos e o áudio precisam ser confirmados em aparelho real.
-- O APK desta entrega foi montado com JDK 17 e ferramentas do Android SDK (javac, D8, aapt2, zipalign e apksigner). O Gradle não conseguiu acessar os repositórios de plugins a partir desta sessão; o projeto e o workflow mantêm a configuração Gradle para compilações regulares.
+- O APK entregue nesta conversa foi montado com JDK 17 e ferramentas do Android SDK (javac, D8, aapt2, zipalign e apksigner). O Gradle não conseguiu acessar os repositórios de plugins a partir desta sessão local; a compilação Gradle padrão foi confirmada com sucesso no GitHub Actions.

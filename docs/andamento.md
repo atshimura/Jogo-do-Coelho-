@@ -13,6 +13,7 @@ Este arquivo acompanha a implementação em etapas, conforme solicitado. Cada et
 | 5 | Compilação, verificações, APK de depuração e publicação do resultado | Concluída |
 | 6 | Ajuste da silhueta lateral quadrúpede, salto para frente e disparo durante movimento | Concluída |
 | 7 | Revisão dos comandos de salto, animação de coelho e estabilidade em colisões | Concluída |
+| 8 | Instalar e exercitar o jogo em emulador Android no GitHub Actions | Em validação |
 
 ## Registro
 
@@ -64,3 +65,9 @@ Este arquivo acompanha a implementação em etapas, conforme solicitado. Cada et
 - Revisados os demais pontos sensíveis: encerramento do áudio sintetizado protegido contra falhas da saída de áudio; ponteiros do joystick e estado do salto são limpos em cancelamento e reinício.
 - Verificação local concluída: fonte compilada com JDK 17, DEX gerado com D8, metadados conferidos com aapt e assinatura confirmada com apksigner. APK `Coelhitos-v0.1.2-debug.apk`, versionCode 3. SHA-256: `224b0e59042aecfb323deb126fe9a46bd6c7029b33362e23e75a1e54acb3b6e9`.
 - GitHub Actions execução #5 concluída com sucesso: `assembleDebug` e envio do artefato passaram. Não há dispositivo ou emulador conectado para reproduzir o toque real.
+
+### 19/10/2026 — etapa 8: emulador Android
+
+- Incluído no GitHub Actions o Android Emulator Runner (`API 35`, perfil Pixel 7 Pro, imagem x86_64), que cria um dispositivo Android virtual dentro do executor Linux.
+- O fluxo instala e abre o APK, captura telas do menu e da fase, aciona saltos direcionais e mantém o coelho avançando por 45 segundos para atravessar obstáculos e verificar se o processo continua aberto após colisões/reinício.
+- O fluxo guarda capturas de tela e Logcat como artefato para inspeção. Resultado da execução será registrado após a conclusão do workflow.

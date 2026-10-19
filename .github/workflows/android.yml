@@ -32,6 +32,73 @@ jobs:
           gradle-version: '8.9'
       - name: Build debug APK
         run: gradle --no-daemon assembleDebug
+      - name: Enable KVM for Android emulator
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Install and exercise Coelhitos in Android emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_7_pro
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: true
+          script: |
+            set -euo pipefail
+            mkdir -p emulator-evidence
+            adb shell settings put system screen_off_timeout 1800000
+            adb install -r app/build/outputs/apk/debug/app-debug.apk
+            adb logcat -c
+            adb shell am start -W -n com.coelhitos/.MainActivity
+            sleep 3
+            adb exec-out screencap -p > emulator-evidence/01-menu.png
+            adb shell input tap 500 400
+            sleep 2
+            adb exec-out screencap -p > emulator-evidence/02-gameplay.png
+            python3 - <<'PY'
+            import struct
+            import subprocess
+
+            with open("emulator-evidence/02-gameplay.png", "rb") as image:
+                image.seek(16)
+                width, height = struct.unpack(">II", image.read(8))
+
+            cx, cy = round(width * .105), round(height * .85)
+            reach = round(height * .12)
+
+            def hold_joystick(x, y, duration=700):
+                subprocess.run([
+                    "adb", "shell", "input", "swipe",
+                    str(x), str(y), str(x), str(y), str(duration)
+                ], check=True)
+
+            # Diagonal starts test jump-forward and jump-back; vertical tests
+            # a jump without horizontal movement. Then hold right through spikes.
+            hold_joystick(cx + reach, cy - reach)
+            hold_joystick(cx - reach, cy - reach)
+            hold_joystick(cx, cy - reach)
+            subprocess.run(["adb", "shell", "input", "tap",
+                            str(round(width * .94)), str(cy)], check=True)
+            hold_joystick(cx + reach, cy, 45000)
+            PY
+            sleep 2
+            adb shell pidof com.coelhitos
+            adb exec-out screencap -p > emulator-evidence/03-after-obstacles.png
+            adb logcat -d -v threadtime > emulator-evidence/logcat.txt
+            if grep -E "FATAL EXCEPTION|ConcurrentModificationException" emulator-evidence/logcat.txt; then
+              exit 1
+            fi
+      - name: Upload emulator evidence
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: Coelhitos-emulator-evidence
+          path: emulator-evidence/
+          if-no-files-found: ignore
+          retention-days: 14
       - name: Upload APK
         uses: actions/upload-artifact@v6
         with:

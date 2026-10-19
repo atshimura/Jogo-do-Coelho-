@@ -7,12 +7,20 @@
 
 Jogo de plataforma 2D lateral para celular Android, sempre em orientação horizontal. O personagem é um coelho que atravessa um portal para um mundo diferente, explora uma planície gramada e precisa chegar ao portal no fim da fase. O visual deve ser original, colorido, expressivo e arredondado, inspirado no clima de jogos de plataforma Kirby no Nintendo Switch, sem reproduzir personagens ou recursos protegidos.
 
+## Visão do jogo completo
+
+- Novos portais levam a mundos com plantas, inimigos e obstáculos próprios.
+- O coelho pode escolher entre várias cores.
+- O personagem poderá encontrar cabanas abandonadas e explorá-las para achar armaduras, poderes e itens.
+- Cenouras representam a moeda do jogo para compras de armaduras e cores. Na primeira fase elas também funcionam como munição de uso único. A relação entre munição e saldo de compras fica para a especificação do sistema de loja; a primeira fase não inclui loja.
+- A primeira versão implementa somente a fase inicial descrita abaixo. Os outros mundos, as cabanas, as armaduras, a seleção de cores e a loja ficam no backlog posterior.
+
 ## Primeira fase
 
 - A fase inicial é uma planície com grama, poucas árvores e elementos de fantasia.
 - O jogador deve levar aproximadamente 3 minutos para chegar ao portal no ritmo normal.
 - A fase contém exatamente 5 baús. Tocar em um baú concede um poder aleatório.
-- Há 5 cenouras disponíveis para coleta no começo da fase; cada cenoura coletada dá um disparo.
+- Há 5 cenouras disponíveis para coleta no começo da fase; outras cenouras aparecem pelo caminho. Cada cenoura coletada dá um disparo.
 - Obstáculos: espinhos, buracos e fogo.
 - O coelho tem aproximadamente um quarto da altura útil da tela.
 
@@ -50,6 +58,12 @@ Se o coelho for atingido por um inimigo ou obstáculo enquanto estiver com um po
 ## Som
 
 O jogo terá trilha musical original em loop e efeitos originais para caminhada, corrida, salto, coleta de cenoura, abertura de baú, obtenção e uso de cada poder, disparos, inimigos, dano, perda de coração, reinício e chegada ao portal. Os sons são sintetizados no aplicativo.
+
+## Backlog após a primeira fase
+
+- Criar os próximos mundos e portais, com ambientes, plantas, obstáculos e inimigos variados.
+- Adicionar cabanas exploráveis, armaduras e seleção de cores.
+- Definir a loja e como separar ou conciliar cenouras usadas como munição e como moeda.
 
 ## Decisões de implementação assumidas
 

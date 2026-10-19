@@ -46,6 +46,7 @@ final class GameView extends View {
     private final ArrayList<Enemy> enemies = new ArrayList<>();
     private final ArrayList<Hazard> hazards = new ArrayList<>();
     private final ArrayList<Shot> shots = new ArrayList<>();
+    private final ArrayList<Burst> bursts = new ArrayList<>();
     private final ArrayList<Decor> decor = new ArrayList<>();
     private float w, h, ground, unit, levelLength, camera, playerX, playerY, vy;
     private float normalSpeed, bunnyH, bunnyW, hitCooldown, powerTime, animTime, lastFrame;
@@ -101,7 +102,7 @@ final class GameView extends View {
     }
 
     private void resetLevel() {
-        pickups.clear(); enemies.clear(); hazards.clear(); shots.clear(); decor.clear();
+        pickups.clear(); enemies.clear(); hazards.clear(); shots.clear(); bursts.clear(); decor.clear();
         hearts=3; carrots=0; power=NONE; powerTime=0; collectedChests=0;
         playerX = h*.65f; playerY = ground-bunnyH; vy=0; onGround=true;
         camera=0; hitCooldown=0; leftHeld=rightHeld=upHeld=jumpHeld=actionHeld=false;
@@ -185,10 +186,18 @@ final class GameView extends View {
             Shot s=si.next(); s.x+=s.vx*dt; s.y+=s.vy*dt; s.age+=dt;
             boolean hit=false;
             for(Enemy e:enemies) if(!e.dead && Math.abs(e.x-s.x)<e.size*.55f && Math.abs((ground-e.size*.85f)-s.y)<e.size*.7f) {
-                damageEnemy(e,s.damage); hit=true; if(s.kind==3) audio.effect(4); else audio.effect(3); break;
+                damageEnemy(e,s.damage); hit=true;
+                if(s.kind==2) {
+                    bursts.add(new Burst(s.x,s.y));
+                    for(Enemy nearby:enemies) if(!nearby.dead && nearby!=e && Math.abs(nearby.x-s.x)<78*unit) damageEnemy(nearby,1);
+                    audio.effect(4);
+                } else if(s.kind==3) audio.effect(4); else audio.effect(3);
+                break;
             }
             if(hit || s.age>2.5f || s.x<camera-80*unit || s.x>camera+w+120*unit) si.remove();
         }
+        Iterator<Burst> bi=bursts.iterator();
+        while(bi.hasNext()) { Burst b=bi.next(); b.age+=dt; if(b.age>.32f) bi.remove(); }
         if(playerX>=levelLength-w*.8f) { state=2; audio.effect(7); audio.stopMusic(); say("Você encontrou o próximo portal!"); }
     }
 
@@ -241,6 +250,7 @@ final class GameView extends View {
         drawPortal(c);
         if(state!=0) drawRabbit(c,playerX-camera,playerY);
         for(Shot s:shots) drawShot(c,s);
+        for(Burst b:bursts) drawBurst(c,b);
     }
 
     private void drawClouds(Canvas c) {
@@ -348,6 +358,11 @@ final class GameView extends View {
         } else if(s.kind==3) { p.setColor(Color.WHITE);Path f=new Path();f.moveTo(x-12*unit,y);f.quadTo(x,y-9*unit,x+10*unit,y);f.quadTo(x,y+4*unit,x-12*unit,y);f.close();c.drawPath(f,p); }
         else { p.setColor(Color.rgb(221,239,231));Path t=new Path();t.moveTo(x,y-13*unit);t.lineTo(x+7*unit,y);t.lineTo(x,y+13*unit);t.lineTo(x-7*unit,y);t.close();c.drawPath(t,p); }
     }
+    private void drawBurst(Canvas c,Burst b) {
+        float x=b.x-camera, y=b.y, radius=(12+b.age*190)*unit;
+        p.setColor(Color.argb((int)(200*(1-b.age/.32f)),255,125,45)); c.drawCircle(x,y,radius,p);
+        p.setColor(Color.argb((int)(230*(1-b.age/.32f)),255,226,91)); c.drawCircle(x,y,radius*.47f,p);
+    }
     private void drawPortal(Canvas c) {
         float x=levelLength-camera-w*.08f, y=ground;
         p.setColor(Color.rgb(109,64,180)); c.drawRoundRect(x-30*unit,y-155*unit,x+30*unit,y,30*unit,30*unit,p);
@@ -454,6 +469,7 @@ final class Shot {
     float x,y,age=0; final float vx,vy;final int damage,kind;
     Shot(float x,float y,float vx,float vy,int damage,int kind,float age){this.x=x;this.y=y;this.vx=vx;this.vy=vy;this.damage=damage;this.kind=kind;this.age=age;}
 }
+final class Burst { final float x,y; float age; Burst(float x,float y){this.x=x;this.y=y;} }
 
 final class AudioEngine {
     private volatile boolean running; private Thread musicThread; private final int rate=22050;

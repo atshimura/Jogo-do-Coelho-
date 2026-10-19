@@ -10,7 +10,7 @@ Este arquivo acompanha a implementação em etapas, conforme solicitado. Cada et
 | 2 | Percurso da planície dimensionado para cerca de 3 minutos, movimento, câmera, obstáculos, corações e reinício | Concluída |
 | 3 | Cinco baús e poderes, cinco cenouras iniciais, projéteis, inimigos com resistências e portal | Concluída |
 | 4 | Trilha original em loop e efeitos sonoros de ações e eventos | Concluída |
-| 5 | Compilação, verificações, APK de depuração e publicação do resultado | Em andamento |
+| 5 | Compilação, verificações, APK de depuração e publicação do resultado | Concluída |
 
 ## Registro
 
@@ -31,3 +31,13 @@ Este arquivo acompanha a implementação em etapas, conforme solicitado. Cada et
 - Verificação técnica: fonte Java compilada com JDK 17; DEX gerado com D8; APK montado com ferramentas do Android SDK e assinatura de depuração validada.
 - O tempo de três minutos é estimado pela velocidade de caminhada e extensão do percurso; será necessário confirmar em aparelho real.
 - A validação final da interface por toque e reprodução do áudio em aparelho real permanece pendente.
+
+### 19/10/2026 — etapa 5 e entrega 0.1.0
+
+- APK debug 0.1.0 gerado para Android 6.0 ou superior (minSdk 23), em orientação horizontal.
+- Pacote conferido: identificador `com.coelhitos`, versão 0.1.0, rótulo Coelhitos.
+- Assinatura de depuração conferida pelo apksigner; DEX gerado pelo D8 e APK alinhado pelo zipalign.
+- SHA-256: `43a0447789acfb9f6415b4b9e7f357b8968a77badb01035f05a5ffc82035b40f`.
+- Foi incluído fluxo GitHub Actions para compilar e publicar o APK debug como artefato em futuras execuções.
+- Limite desta validação: não havia aparelho Android nem emulador conectado. O controle por toque, o ritmo de 3 minutos e o áudio precisam ser confirmados em aparelho real.
+- O APK desta entrega foi montado com JDK 17 e ferramentas do Android SDK (javac, D8, aapt2, zipalign e apksigner). O Gradle não conseguiu acessar os repositórios de plugins a partir desta sessão; o projeto e o workflow mantêm a configuração Gradle para compilações regulares.

@@ -13,6 +13,7 @@ import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
@@ -67,7 +68,6 @@ final class GameView extends View {
 
     GameView(Context context) {
         super(context);
-        setLayerType(View.LAYER_TYPE_SOFTWARE, null);
         setFocusable(true);
         audio.start();
     }
@@ -231,6 +231,7 @@ final class GameView extends View {
         jumpBufferTime=0;
         if(dir!=0) facingRight=dir>0;
         jumpForwardSpeed=normalSpeed*.82f*dir;
+        if(BuildConfig.DEBUG) Log.d("CoelhitosInput","jump dir="+(int)dir);
         vy=-h*1.47f; onGround=false; audio.effect(6);
     }
     private void say(String s) { notice=s; noticeTime=1.25f; }
@@ -248,6 +249,7 @@ final class GameView extends View {
 
     private void shoot() {
         if(state!=1)return;
+        if(BuildConfig.DEBUG) Log.d("CoelhitosInput","shoot");
         float direction=(leftHeld&&!rightHeld)?-1:(rightHeld&&!leftHeld)?1:(facingRight?1:-1);
         float sx=playerX+(direction>0?bunnyW*.94f:-bunnyW*.04f), sy=playerY+bunnyH*.56f, v=650*unit*direction;
         if(power==THORN) {

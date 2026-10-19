@@ -55,22 +55,35 @@ jobs:
             adb shell am start -W -n com.coelhitos/.MainActivity
             sleep 3
             adb exec-out screencap -p > emulator-evidence/01-menu.png
-            adb shell input tap 500 400
+            # The title screen's JOGAR button is near the bottom-center.
+            adb shell input tap 1080 744
             sleep 2
+            # Dismiss Android's immersive-mode confirmation if it appeared.
             adb shell input tap 1465 435
             sleep 1
             adb exec-out screencap -p > emulator-evidence/02-gameplay.png
             # Pixel 7 Pro emulator screen: 2160x960 in landscape.
-            # Diagonal holds test forward/back jumps; vertical tests a neutral jump.
+            # The left stick is centered near (227,816); the action/jump
+            # buttons are centered near (1829,816) and (2030,816).
+            # Diagonal directions exercise forward/back jumps; neutral is vertical.
             adb shell input swipe 415 701 415 701 700
-            adb shell input swipe 185 701 185 701 700
-            adb shell input swipe 300 701 300 701 700
+            adb shell input swipe 100 701 100 701 700
+            adb shell input swipe 227 701 227 701 700
             adb shell input tap 2030 816
+            # Keep the stick active while holding AÇÃO to run, then tap AÇÃO
+            # while moving to confirm a short release fires a projectile.
+            adb shell input swipe 415 816 415 816 1200 & adb shell input swipe 1829 816 1829 816 700; wait
+            adb shell input swipe 415 816 415 816 1200 & adb shell input tap 1829 816; wait
+            # Sustain movement through hazards, then ensure the app stays alive.
             adb shell input swipe 415 816 415 816 15000
             sleep 2
             adb shell pidof com.coelhitos
             adb exec-out screencap -p > emulator-evidence/03-after-obstacles.png
             adb logcat -d -v threadtime > emulator-evidence/logcat.txt
+            grep -q "CoelhitosInput: jump dir=1" emulator-evidence/logcat.txt
+            grep -q "CoelhitosInput: jump dir=-1" emulator-evidence/logcat.txt
+            grep -q "CoelhitosInput: jump dir=0" emulator-evidence/logcat.txt
+            grep -q "CoelhitosInput: shoot" emulator-evidence/logcat.txt
             ! grep -E "FATAL EXCEPTION|ConcurrentModificationException" emulator-evidence/logcat.txt
       - name: Upload emulator evidence
         if: always()

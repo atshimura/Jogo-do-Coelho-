@@ -13,7 +13,7 @@ Este arquivo acompanha a implementação em etapas, conforme solicitado. Cada et
 | 5 | Compilação, verificações, APK de depuração e publicação do resultado | Concluída |
 | 6 | Ajuste da silhueta lateral quadrúpede, salto para frente e disparo durante movimento | Concluída |
 | 7 | Revisão dos comandos de salto, animação de coelho e estabilidade em colisões | Concluída |
-| 8 | Instalar e exercitar o jogo em emulador Android no GitHub Actions | Em validação |
+| 8 | Instalar e exercitar o jogo em emulador Android no GitHub Actions | Concluída |
 
 ## Registro
 
@@ -69,5 +69,8 @@ Este arquivo acompanha a implementação em etapas, conforme solicitado. Cada et
 ### 19/10/2026 — etapa 8: emulador Android
 
 - Incluído no GitHub Actions o Android Emulator Runner (`API 35`, perfil Pixel 7 Pro, imagem x86_64), que cria um dispositivo Android virtual dentro do executor Linux.
-- O fluxo instala e abre o APK, captura telas do menu e da fase, aciona saltos direcionais e mantém o coelho avançando por 45 segundos para atravessar obstáculos e verificar se o processo continua aberto após colisões/reinício.
-- O fluxo guarda capturas de tela e Logcat como artefato para inspeção. Resultado da execução será registrado após a conclusão do workflow.
+- O fluxo instala e abre o APK, captura telas do menu e da fase, aciona gestos direcionais de salto e mantém o coelho avançando por 15 segundos para verificar estabilidade e registro de erros.
+- GitHub Actions execução #12 concluída com sucesso em emulador API 35 (Pixel 7 Pro, x86_64): compilação, inicialização do emulador, instalação e abertura do jogo, comandos de toque, processo ativo após o percurso, checagem do Logcat e upload dos artefatos passaram.
+- Não foram encontrados `FATAL EXCEPTION` nem `ConcurrentModificationException` no Logcat dessa execução. O APK permaneceu ativo ao fim do trecho testado.
+- Capturas e Logcat da execução: artefato `Coelhitos-emulator-evidence`, disponível em https://github.com/atshimura/Jogo-do-Coelho-/actions/runs/39340709024/artifacts/12228548825 (retenção de 14 dias).
+- Limite: esse smoke test automatizado confirma inicialização e estabilidade durante um trecho curto; não substitui a avaliação visual e de jogabilidade em aparelho real nem mede a duração total de 3 minutos.

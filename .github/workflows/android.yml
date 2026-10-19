@@ -58,32 +58,13 @@ jobs:
             adb shell input tap 500 400
             sleep 2
             adb exec-out screencap -p > emulator-evidence/02-gameplay.png
-            python3 - <<'PY'
-            import struct
-            import subprocess
-
-            with open("emulator-evidence/02-gameplay.png", "rb") as image:
-                image.seek(16)
-                width, height = struct.unpack(">II", image.read(8))
-
-            cx, cy = round(width * .105), round(height * .85)
-            reach = round(height * .12)
-
-            def hold_joystick(x, y, duration=700):
-                subprocess.run([
-                    "adb", "shell", "input", "swipe",
-                    str(x), str(y), str(x), str(y), str(duration)
-                ], check=True)
-
-            # Diagonal starts test jump-forward and jump-back; vertical tests
-            # a jump without horizontal movement. Then hold right through spikes.
-            hold_joystick(cx + reach, cy - reach)
-            hold_joystick(cx - reach, cy - reach)
-            hold_joystick(cx, cy - reach)
-            subprocess.run(["adb", "shell", "input", "tap",
-                            str(round(width * .94)), str(cy)], check=True)
-            hold_joystick(cx + reach, cy, 45000)
-            PY
+            # Pixel 7 Pro emulator screen: 2160x960 in landscape.
+            # Diagonal holds test forward/back jumps; vertical tests a neutral jump.
+            adb shell input swipe 342 701 342 701 700
+            adb shell input swipe 112 701 112 701 700
+            adb shell input swipe 227 701 227 701 700
+            adb shell input tap 2030 816
+            adb shell input swipe 342 816 342 816 45000
             sleep 2
             adb shell pidof com.coelhitos
             adb exec-out screencap -p > emulator-evidence/03-after-obstacles.png

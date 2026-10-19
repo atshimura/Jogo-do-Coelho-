@@ -12,6 +12,7 @@ Este arquivo acompanha a implementação em etapas, conforme solicitado. Cada et
 | 4 | Trilha original em loop e efeitos sonoros de ações e eventos | Concluída |
 | 5 | Compilação, verificações, APK de depuração e publicação do resultado | Concluída |
 | 6 | Ajuste da silhueta lateral quadrúpede, salto para frente e disparo durante movimento | Concluída |
+| 7 | Revisão dos comandos de salto, animação de coelho e estabilidade em colisões | Concluída |
 
 ## Registro
 
@@ -54,3 +55,12 @@ Este arquivo acompanha a implementação em etapas, conforme solicitado. Cada et
 - APK debug `Coelhitos-v0.1.1-debug.apk`, versionCode 2, versionName 0.1.1. SHA-256: `4816a8455a34da0347527db6fd05eb0913815285510c53f51dd96e13b1cc7844`.
 - A compilação Gradle local continua indisponível nesta sessão porque o plugin Android não está no cache e o repositório não aceitou a conexão; a validação foi concluída diretamente com as ferramentas do Android SDK.
 - Validação de toque, animação e áudio em aparelho/emulador permanece pendente.
+
+### 19/10/2026 — etapa 7 e revisão 0.1.2
+
+- Salto sem direção horizontal agora é vertical. Direita + pulo desloca o salto para a direita; esquerda + pulo desloca para a esquerda. Virar acompanha a direcional.
+- A animação de movimento foi refeita com impulsos curtos das duas patas traseiras juntas, patas dianteiras de apoio, corpo mais detalhado e orelhas com movimento.
+- Corrigida a causa do fechamento ao colidir: ao perder o último coração, a rotina de dano reiniciava e limpava listas enquanto a colisão ainda as percorria, situação que podia lançar `ConcurrentModificationException`. O reinício agora espera os iteradores terminarem.
+- Revisados os demais pontos sensíveis: encerramento do áudio sintetizado protegido contra falhas da saída de áudio; ponteiros do joystick e estado do salto são limpos em cancelamento e reinício.
+- Verificação local concluída: fonte compilada com JDK 17, DEX gerado com D8, metadados conferidos com aapt e assinatura confirmada com apksigner. APK `Coelhitos-v0.1.2-debug.apk`, versionCode 3. SHA-256: `224b0e59042aecfb323deb126fe9a46bd6c7029b33362e23e75a1e54acb3b6e9`.
+- A revisão está pronta para validação automática no GitHub Actions. Não há dispositivo ou emulador conectado para reproduzir o toque real.

@@ -1,6 +1,6 @@
 # Coelhitos — especificação funcional
 
-**Versão:** 1.0 — 19/10/2026  
+**Versão:** 1.1 — 19/10/2026  
 **Escopo inicial:** protótipo Android com a primeira fase completa.
 
 ## Conceito
@@ -28,7 +28,8 @@ Jogo de plataforma 2D lateral para celular Android, sempre em orientação horiz
 
 - O coelho é visto de lado, voltado para a direita quando avança; não fica de frente para a câmera. Sua locomoção é quadrúpede, como a de um coelho comum, com impulso das patas traseiras.
 - O coelho anda, corre, pula e se desloca para a esquerda e para a direita. Ao mudar de direção, a silhueta vira junto.
-- O joystick virtual fica à esquerda. Direção para cima inicia um salto que avança na direção em que o coelho está olhando; a diagonal para cima direciona o salto enquanto mantém o deslocamento.
+- O joystick virtual fica à esquerda. Pulo sem direção horizontal sobe no mesmo lugar. Direita + pulo salta para a direita; esquerda + pulo salta para a esquerda. O coelho vira para o lado da direcional, inclusive quando anda para trás.
+- Ao caminhar ou correr, as patas traseiras trabalham juntas e impulsionam pequenos pulos; as patas dianteiras acompanham o movimento. A animação não deve imitar a passada de um gato.
 - À direita há dois botões: salto e ação.
 - Segurar o botão de ação enquanto o joystick indica uma direção faz o coelho correr.
 - Tocar e soltar rapidamente o botão de ação dispara, inclusive enquanto o joystick continua apontado para a frente. Assim, o jogador pode manter o movimento e atirar durante a caminhada ou corrida. Sem poder, o disparo consome uma cenoura.

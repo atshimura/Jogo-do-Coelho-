@@ -63,4 +63,4 @@ Este arquivo acompanha a implementação em etapas, conforme solicitado. Cada et
 - Corrigida a causa do fechamento ao colidir: ao perder o último coração, a rotina de dano reiniciava e limpava listas enquanto a colisão ainda as percorria, situação que podia lançar `ConcurrentModificationException`. O reinício agora espera os iteradores terminarem.
 - Revisados os demais pontos sensíveis: encerramento do áudio sintetizado protegido contra falhas da saída de áudio; ponteiros do joystick e estado do salto são limpos em cancelamento e reinício.
 - Verificação local concluída: fonte compilada com JDK 17, DEX gerado com D8, metadados conferidos com aapt e assinatura confirmada com apksigner. APK `Coelhitos-v0.1.2-debug.apk`, versionCode 3. SHA-256: `224b0e59042aecfb323deb126fe9a46bd6c7029b33362e23e75a1e54acb3b6e9`.
-- A revisão está pronta para validação automática no GitHub Actions. Não há dispositivo ou emulador conectado para reproduzir o toque real.
+- GitHub Actions execução #5 concluída com sucesso: `assembleDebug` e envio do artefato passaram. Não há dispositivo ou emulador conectado para reproduzir o toque real.

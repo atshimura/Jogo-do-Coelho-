@@ -16,4 +16,5 @@
 - APK debug: `Coelhitos-v0.1.2-debug.apk`
 - SHA-256: `224b0e59042aecfb323deb126fe9a46bd6c7029b33362e23e75a1e54acb3b6e9`
 - Fonte compilada com JDK 17; DEX gerado com D8; APK alinhado e assinatura verificada com ferramentas do Android SDK.
+- GitHub Actions execução #5: compilação Gradle e upload do APK concluídos com sucesso.
 - A confirmação dos controles por toque em aparelho ou emulador ainda é necessária.

@@ -14,6 +14,7 @@ Este arquivo acompanha a implementação em etapas, conforme solicitado. Cada et
 | 6 | Ajuste da silhueta lateral quadrúpede, salto para frente e disparo durante movimento | Concluída |
 | 7 | Revisão dos comandos de salto, animação de coelho e estabilidade em colisões | Concluída |
 | 8 | Instalar e exercitar o jogo em emulador Android no GitHub Actions | Concluída |
+| 9 | Corrigir disparo/pulo, dar relevo aos elementos e sincronizar áudio na perda de vida | Em validação |
 
 ## Registro
 
@@ -74,3 +75,11 @@ Este arquivo acompanha a implementação em etapas, conforme solicitado. Cada et
 - Não foram encontrados `FATAL EXCEPTION` nem `ConcurrentModificationException` no Logcat dessa execução. O APK permaneceu ativo ao fim do trecho testado.
 - Capturas e Logcat da execução: artefato `Coelhitos-emulator-evidence`, disponível em https://github.com/atshimura/Jogo-do-Coelho-/actions/runs/39340709024/artifacts/12228548825 (retenção de 14 dias).
 - Limite: esse smoke test automatizado confirma inicialização e estabilidade durante um trecho curto; não substitui a avaliação visual e de jogabilidade em aparelho real nem mede a duração total de 3 minutos.
+
+### 19/10/2026 — etapa 9: ajustes de controle, relevo e áudio (0.1.3)
+
+- Em andamento: separar de modo confiável o toque curto de disparo da pressão longa para corrida, com o joystick ativo durante as duas ações.
+- Em andamento: adicionar buffer curto ao pulo para que o toque perto do pouso seja aceito, sem repetir saltos enquanto o comando direcional fica pressionado.
+- Em andamento: criar contraste e volume com sombras, contornos e gradientes no coelho, nos inimigos e nos obstáculos.
+- Em andamento: ao perder um coração, pausar brevemente a trilha e tocar um efeito descendente específico; perder um poder continua usando o som de dano sem pausar a música.
+- Próxima verificação: compilar APK 0.1.3, instalar no emulador API 35 via GitHub Actions, revisar capturas e Logcat, e registrar checksum e links do artefato.

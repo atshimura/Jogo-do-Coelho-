@@ -56,6 +56,7 @@ final class GameView extends View {
     private int stickPointer = -1, actionPointer = -1, jumpPointer = -1;
     private float stickX, stickY;
     private long actionDownAt;
+    private float jumpBufferTime, queuedJumpDirection;
     private boolean stickJumpWasDown;
     private long startMillis;
     private final RectF stickArea = new RectF();
@@ -106,7 +107,7 @@ final class GameView extends View {
         pickups.clear(); enemies.clear(); hazards.clear(); shots.clear(); bursts.clear(); decor.clear();
         hearts=3; carrots=0; power=NONE; powerTime=0; collectedChests=0; restartPending=false;
         playerX = h*.65f; playerY = ground-bunnyH; vy=0; jumpForwardSpeed=0; onGround=true; facingRight=true;
-        camera=0; hitCooldown=0; leftHeld=rightHeld=upHeld=jumpHeld=actionHeld=false;
+        camera=0; hitCooldown=0; jumpBufferTime=0;queuedJumpDirection=0;leftHeld=rightHeld=upHeld=jumpHeld=actionHeld=false;
         stickPointer=actionPointer=jumpPointer=-1; stickJumpWasDown=false;
         for(int i=0;i<5;i++) pickups.add(new Pickup(playerX+65*unit + i*112*unit, 0, 0));
         for(int i=0;i<5;i++) pickups.add(new Pickup(levelLength*(.12f+i*.17f), 0, 0));
@@ -151,12 +152,15 @@ final class GameView extends View {
             if(stepTimer<=0) { audio.effect(running?15:14); stepTimer=running?.34f:.48f; }
         } else stepTimer=0;
         playerX=Math.max(0,Math.min(levelLength-bunnyW*.6f,playerX));
-        if (upHeld && onGround && vy==0) { jump(); }
         if (!onGround) {
             vy += h*3.7f*dt;
             playerY += vy*dt;
             if (playerY+bunnyH>=ground) { playerY=ground-bunnyH; vy=0; onGround=true; jumpForwardSpeed=0; }
         } else playerY=ground-bunnyH;
+        if (jumpBufferTime > 0) {
+            jumpBufferTime = Math.max(0, jumpBufferTime-dt);
+            if (onGround) launchJump(queuedJumpDirection);
+        }
         float target=playerX-w*.28f;
         camera=Math.max(0,Math.min(levelLength-w,target));
 
@@ -213,11 +217,18 @@ final class GameView extends View {
         if(n<30)return THORN; if(n<45)return LIGHTNING; if(n<75)return FEATHER; return FIRE;
     }
     private String powerName(int pwr) { return pwr==THORN?"Poder Espinho!":pwr==LIGHTNING?"Poder Raio!":pwr==FEATHER?"Poder Pena!":"Poder Fogo!"; }
-    private void jump() {
+    private float horizontalDirection() { return rightHeld&&!leftHeld?1:leftHeld&&!rightHeld?-1:0; }
+    private void requestJump() {
+        queuedJumpDirection=horizontalDirection();
+        if (queuedJumpDirection!=0) facingRight=queuedJumpDirection>0;
+        jumpBufferTime=.22f;
+        if(onGround) launchJump(queuedJumpDirection);
+    }
+    private void launchJump(float dir) {
         if(!onGround)return;
-        // Sem direção horizontal, o salto sobe no lugar. Direita/esquerda
-        // combinada com pulo define o avanço para a frente ou para trás.
-        float dir=(rightHeld?1:leftHeld?-1:0);
+        // Um toque gera um salto. O buffer curto evita perder o comando se o
+        // botão for apertado pouco antes de tocar o chão.
+        jumpBufferTime=0;
         if(dir!=0) facingRight=dir>0;
         jumpForwardSpeed=normalSpeed*.82f*dir;
         vy=-h*1.47f; onGround=false; audio.effect(6);
@@ -225,11 +236,11 @@ final class GameView extends View {
     private void say(String s) { notice=s; noticeTime=1.25f; }
     private void hurt() {
         if(hitCooldown>0 || state!=1)return;
-        hitCooldown=1.1f; audio.effect(8);
-        if(power!=NONE) { power=NONE; powerTime=0; say("Você perdeu o poder"); }
+        hitCooldown=1.1f;
+        if(power!=NONE) { audio.effect(8); power=NONE; powerTime=0; say("Você perdeu o poder"); }
         else {
-            hearts--; say("Cuidado!");
-            if(hearts<=0) { audio.effect(9); restartPending=true; }
+            hearts--; audio.lifeLost(); say("Cuidado!");
+            if(hearts<=0) restartPending=true;
         }
     }
     private void restartAfterDamage() { restartPending=false; beginGame(); say("A fase recomeçou"); }
@@ -304,15 +315,29 @@ final class GameView extends View {
     private void drawHazard(Canvas c,Hazard z) {
         float x=z.x-camera,s=z.size;
         if(x<-s*2||x>w+s*2)return;
+        p.setShader(null); p.setStyle(Paint.Style.FILL); p.setAlpha(255);
+        p.setColor(Color.argb(65,34,48,42));
+        c.drawOval(x-s*.62f,ground-3*unit,x+s*.62f,ground+8*unit,p);
         if(z.type==1) { // pit
-            p.setColor(Color.rgb(54,87,52)); c.drawRoundRect(x,ground-2*unit,x+s,ground+30*unit,12*unit,12*unit,p);
-            p.setColor(Color.rgb(43,53,56)); c.drawOval(x+5*unit,ground,x+s-4*unit,ground+28*unit,p);
+            p.setShader(new LinearGradient(x,ground,x,ground+32*unit,Color.rgb(77,111,60),Color.rgb(27,40,45),Shader.TileMode.CLAMP));
+            c.drawRoundRect(x,ground-3*unit,x+s,ground+31*unit,12*unit,12*unit,p); p.setShader(null);
+            p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(2*unit);p.setColor(Color.rgb(38,94,50));
+            c.drawRoundRect(x,ground-3*unit,x+s,ground+31*unit,12*unit,12*unit,p);p.setStyle(Paint.Style.FILL);
+            p.setColor(Color.rgb(34,43,48)); c.drawOval(x+6*unit,ground+2*unit,x+s-5*unit,ground+27*unit,p);
+            p.setColor(Color.argb(110,126,157,96));c.drawLine(x+12*unit,ground+2*unit,x+s-13*unit,ground+2*unit,p);
         } else if(z.type==0) { // spikes
-            p.setColor(Color.rgb(214,235,214));
-            for(int i=0;i<3;i++){Path t=new Path();t.moveTo(x-s*.45f+i*s*.3f,ground);t.lineTo(x-s*.3f+i*s*.3f,ground-s*.58f);t.lineTo(x-s*.15f+i*s*.3f,ground);t.close();c.drawPath(t,p);}
+            for(int i=0;i<3;i++) {
+                float left=x-s*.45f+i*s*.3f, tip=x-s*.3f+i*s*.3f, right=x-s*.15f+i*s*.3f;
+                Path t=new Path();t.moveTo(left,ground);t.lineTo(tip,ground-s*.58f);t.lineTo(right,ground);t.close();
+                p.setShader(new LinearGradient(tip,ground-s*.58f,tip,ground,Color.rgb(250,255,243),Color.rgb(121,151,139),Shader.TileMode.CLAMP));
+                c.drawPath(t,p);p.setShader(null);p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(1.5f*unit);p.setColor(Color.rgb(56,91,77));c.drawPath(t,p);p.setStyle(Paint.Style.FILL);
+                p.setColor(Color.argb(170,255,255,229));p.setStrokeWidth(1.2f*unit);c.drawLine(tip,ground-s*.48f,tip-s*.055f,ground-s*.15f,p);
+            }
         } else { // flame
-            p.setColor(Color.rgb(255,95,38)); c.drawOval(x-s*.35f,ground-s*.7f,x+s*.35f,ground+2*unit,p);
-            p.setColor(Color.rgb(255,202,62)); c.drawOval(x-s*.16f,ground-s*.54f,x+s*.16f,ground,p);
+            p.setShader(new LinearGradient(x,ground-s*.7f,x,ground,Color.rgb(255,239,120),Color.rgb(232,53,31),Shader.TileMode.CLAMP));
+            c.drawOval(x-s*.35f,ground-s*.7f,x+s*.35f,ground+2*unit,p);p.setShader(null);
+            p.setColor(Color.rgb(255,184,47)); c.drawOval(x-s*.22f,ground-s*.49f,x+s*.22f,ground,p);
+            p.setColor(Color.rgb(255,246,185)); c.drawOval(x-s*.09f,ground-s*.30f,x+s*.08f,ground-2*unit,p);
         }
     }
     private void drawPickup(Canvas c,Pickup q) {
@@ -335,10 +360,16 @@ final class GameView extends View {
     private void drawEnemy(Canvas c,Enemy e) {
         float x=e.x-camera, y=ground-e.size*.48f;
         if(x<-e.size||x>w+e.size)return;
-        p.setColor(e.big?Color.rgb(171,116,207):Color.rgb(87,139,190));
+        p.setShader(null);p.setStyle(Paint.Style.FILL);p.setAlpha(255);
+        p.setColor(Color.argb(70,33,43,53));c.drawOval(x-e.size*.42f,ground-e.size*.13f,x+e.size*.42f,ground+e.size*.015f,p);
+        int top=e.big?Color.rgb(235,195,255):Color.rgb(183,224,250);
+        int base=e.big?Color.rgb(126,74,164):Color.rgb(57,111,157);
+        p.setShader(new LinearGradient(x,y-e.size*.4f,x,y+e.size*.35f,top,base,Shader.TileMode.CLAMP));
         c.drawOval(x-e.size*.48f,y-e.size*.38f,x+e.size*.48f,y+e.size*.33f,p);
-        p.setColor(e.big?Color.rgb(212,169,236):Color.rgb(144,197,231));
-        c.drawCircle(x-e.size*.25f,y-e.size*.42f,e.size*.20f,p); c.drawCircle(x+e.size*.25f,y-e.size*.42f,e.size*.20f,p);
+        p.setShader(null);p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(1.7f*unit);p.setColor(e.big?Color.rgb(91,56,119):Color.rgb(48,83,118));c.drawOval(x-e.size*.48f,y-e.size*.38f,x+e.size*.48f,y+e.size*.33f,p);p.setStyle(Paint.Style.FILL);
+        p.setShader(new LinearGradient(x-e.size*.2f,y-e.size*.6f,x-e.size*.2f,y-e.size*.25f,top,base,Shader.TileMode.CLAMP));
+        c.drawCircle(x-e.size*.25f,y-e.size*.42f,e.size*.20f,p); c.drawCircle(x+e.size*.25f,y-e.size*.42f,e.size*.20f,p);p.setShader(null);
+        p.setColor(Color.argb(110,255,255,255));c.drawCircle(x-e.size*.30f,y-e.size*.46f,e.size*.055f,p);
         p.setColor(Color.WHITE); c.drawCircle(x-e.size*.14f,y-e.size*.05f,e.size*.09f,p); c.drawCircle(x+e.size*.14f,y-e.size*.05f,e.size*.09f,p);
         p.setColor(Color.rgb(48,52,78)); c.drawCircle(x-e.size*.14f,y-e.size*.04f,e.size*.04f,p); c.drawCircle(x+e.size*.14f,y-e.size*.04f,e.size*.04f,p);
         if(e.maxHp>1) {
@@ -357,6 +388,10 @@ final class GameView extends View {
         float hindPush=onGround?Math.max(0,-gait)*s*.05f:0;
         float foreSwing=onGround&&moving?gait*s*.025f:0;
         y-=hop;
+        p.setShader(null);p.setStyle(Paint.Style.FILL);p.setAlpha(255);
+        int shadowAlpha=onGround?68:34;
+        p.setColor(Color.argb(shadowAlpha,38,48,48));
+        c.drawOval(x+bunnyW*.12f,ground-s*.035f,x+bunnyW*.97f,ground+s*.055f,p);
         c.save();
         if(!facingRight) { c.scale(-1,1,x+bunnyW/2,y+bunnyH/2); }
         if(hitCooldown>0 && ((int)(hitCooldown*12)%2==0)) p.setAlpha(110); else p.setAlpha(255);
@@ -367,8 +402,10 @@ final class GameView extends View {
         c.drawOval(x+bunnyW*.13f-hindPush,y+s*.84f-hindCurl,x+bunnyW*.43f-hindPush,y+s*.98f-hindCurl,p);
         c.drawOval(x+bunnyW*.31f-hindPush,y+s*.86f-hindCurl,x+bunnyW*.55f-hindPush,y+s*.98f-hindCurl,p);
         // Corpo baixo e alongado, com uma mancha clara no ventre.
-        p.setColor(Color.rgb(255,248,236));
+        p.setShader(new LinearGradient(x+bunnyW*.22f,y+s*.42f,x+bunnyW*.56f,y+s*.9f,Color.rgb(255,255,250),Color.rgb(223,203,180),Shader.TileMode.CLAMP));
         c.drawOval(x+bunnyW*.15f,y+s*.40f,x+bunnyW*.73f,y+s*.82f,p);
+        p.setShader(null);
+        p.setColor(Color.argb(105,255,255,255));c.drawOval(x+bunnyW*.25f,y+s*.44f,x+bunnyW*.60f,y+s*.51f,p);
         p.setColor(Color.rgb(255,239,222));
         c.drawOval(x+bunnyW*.37f,y+s*.61f,x+bunnyW*.69f,y+s*.78f,p);
         // Patas da frente apoiam e acompanham o salto, sem passada de gato.
@@ -389,9 +426,10 @@ final class GameView extends View {
         c.drawOval(x+bunnyW*.69f,y+s*.14f,x+bunnyW*.74f,y+s*.39f,p);
         c.restore();
         // Cabeça, focinho e traços do rosto em perfil.
-        p.setColor(Color.rgb(255,248,236));
+        p.setShader(new LinearGradient(x+bunnyW*.68f,y+s*.22f,x+bunnyW*.93f,y+s*.68f,Color.rgb(255,255,252),Color.rgb(224,204,182),Shader.TileMode.CLAMP));
         c.drawCircle(x+bunnyW*.76f,y+s*.43f,s*.24f,p);
         c.drawOval(x+bunnyW*.84f,y+s*.51f,x+bunnyW*1.02f,y+s*.64f,p);
+        p.setShader(null);
         p.setColor(Color.rgb(74,70,81)); c.drawCircle(x+bunnyW*.85f,y+s*.39f,s*.037f,p);
         p.setColor(Color.WHITE); c.drawCircle(x+bunnyW*.86f,y+s*.38f,s*.012f,p);
         p.setColor(Color.rgb(245,143,156)); c.drawCircle(x+bunnyW*1.01f,y+s*.565f,s*.035f,p);
@@ -477,8 +515,8 @@ final class GameView extends View {
             case MotionEvent.ACTION_POINTER_DOWN:
                 if(x<w*.36f && y>h*.52f) { stickPointer=id; updateStick(x,y); return true; }
                 if(x>w*.78f && y>h*.58f) {
-                    if(x>w*.89f) { jumpPointer=id; jumpHeld=true; jump(); }
-                    else { actionPointer=id; actionHeld=true; actionDownAt=System.currentTimeMillis(); }
+                    if(x>w*.89f) { jumpPointer=id; jumpHeld=true; requestJump(); }
+                    else { actionPointer=id; actionHeld=true; actionDownAt=e.getEventTime(); }
                     return true;
                 }
                 break;
@@ -489,9 +527,9 @@ final class GameView extends View {
             case MotionEvent.ACTION_POINTER_UP:
                 if(id==stickPointer) { stickPointer=-1; leftHeld=rightHeld=upHeld=false; stickJumpWasDown=false; }
                 if(id==actionPointer) {
-                    long held=System.currentTimeMillis()-actionDownAt;
+                    long held=e.getEventTime()-actionDownAt;
                     actionPointer=-1; actionHeld=false;
-                    if(held<280) shoot();
+                    if(held<=420) shoot();
                 }
                 if(id==jumpPointer) { jumpPointer=-1; jumpHeld=false; }
                 break;
@@ -505,7 +543,7 @@ final class GameView extends View {
         float cx=w*.105f, cy=h*.85f, dx=x-cx, dy=y-cy;
         leftHeld=dx< -h*.045f; rightHeld=dx>h*.045f;
         boolean nextUp=dy< -h*.045f;
-        if(nextUp&&!stickJumpWasDown) jump();
+        if(nextUp&&!stickJumpWasDown) requestJump();
         stickJumpWasDown=nextUp; upHeld=nextUp;
     }
 }
@@ -530,12 +568,21 @@ final class Shot {
 final class Burst { final float x,y; float age; Burst(float x,float y){this.x=x;this.y=y;} }
 
 final class AudioEngine {
-    private volatile boolean running; private Thread musicThread; private final int rate=22050;
-    void start() { if(running)return; running=true; musicThread=new Thread(this::musicLoop,"coelhitos-music");musicThread.start(); }
-    void pause() { running=false; }
-    void stopMusic() { running=false; }
-    void stop() { running=false; }
-    private void musicLoop() {
+    private volatile boolean running; private volatile int generation; private volatile long pauseUntil;
+    private Thread musicThread; private final int rate=22050;
+    synchronized void start() {
+        if(running)return;
+        running=true; int token=++generation;
+        musicThread=new Thread(() -> musicLoop(token),"coelhitos-music");musicThread.start();
+    }
+    void pause() { stopMusic(); }
+    synchronized void stopMusic() { running=false; generation++; }
+    void stop() { stopMusic(); }
+    void pauseMusicBriefly(long durationMs) {
+        if(running) pauseUntil=Math.max(pauseUntil,System.currentTimeMillis()+durationMs);
+    }
+    void lifeLost() { pauseMusicBriefly(680); effect(16); }
+    private void musicLoop(int token) {
         AudioTrack track=null;
         try {
             int min=AudioTrack.getMinBufferSize(rate,AudioFormat.CHANNEL_OUT_MONO,AudioFormat.ENCODING_PCM_16BIT);
@@ -543,7 +590,15 @@ final class AudioEngine {
             if(track.getState()!=AudioTrack.STATE_INITIALIZED)return;
             track.play();
             short[] buf=new short[2048]; long sample=0; int[] notes={523,659,784,659,587,698,880,698,523,659,784,988,880,784,659,587};
-            while(running) {
+            boolean muted=false;
+            while(running && generation==token) {
+                long silence=pauseUntil-System.currentTimeMillis();
+                if(silence>0) {
+                    if(!muted) { track.pause(); track.flush(); muted=true; }
+                    Thread.sleep(Math.min(40,silence));
+                    continue;
+                }
+                if(muted) { track.play(); muted=false; }
                 for(int i=0;i<buf.length;i++,sample++) {
                     double sec=sample/(double)rate, beat=sec*2.0;
                     int noteIndex=(int)beat%notes.length, chord=(int)(beat/4)%4;
@@ -553,7 +608,7 @@ final class AudioEngine {
                     double env=.72+.28*Math.sin(2*Math.PI*(beat%1));
                     buf[i]=(short)(Math.max(-1,Math.min(1,(melody*.07+bass*.035)*env))*32767);
                 }
-                if(track.write(buf,0,buf.length)<0)break;
+                if(!running || generation!=token || track.write(buf,0,buf.length)<0)break;
             }
         } catch (Exception ignored) {
             // Falha de saída de áudio não deve encerrar o processo do jogo.
@@ -562,7 +617,7 @@ final class AudioEngine {
         }
     }
     void effect(int id) {
-        final int[][] tunes={{880,1175},{640,960},{420,620,870},{560,0},{240,160},{760,540},{760,980},{780,1170},{170,130},{95,70},{540,780,320},{920,740,550},{310,210,130},{180,140},{115,155,120},{180,210,160}};
+        final int[][] tunes={{880,1175},{640,960},{420,620,870},{560,0},{240,160},{760,540},{760,980},{780,1170},{170,130},{95,70},{540,780,320},{920,740,550},{310,210,130},{180,140},{115,155,120},{180,210,160},{620,460,340,240}};
         int[] seq=tunes[Math.max(0,Math.min(id,tunes.length-1))];
         new Thread(() -> {
             try {

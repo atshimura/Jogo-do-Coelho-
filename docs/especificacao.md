@@ -1,6 +1,6 @@
 # Coelhitos — especificação funcional
 
-**Versão:** 1.1 — 19/10/2026  
+**Versão:** 1.2 — 19/10/2026
 **Escopo inicial:** protótipo Android com a primeira fase completa.
 
 ## Conceito
@@ -32,7 +32,8 @@ Jogo de plataforma 2D lateral para celular Android, sempre em orientação horiz
 - Ao caminhar ou correr, as patas traseiras trabalham juntas e impulsionam pequenos pulos; as patas dianteiras acompanham o movimento. A animação não deve imitar a passada de um gato.
 - À direita há dois botões: salto e ação.
 - Segurar o botão de ação enquanto o joystick indica uma direção faz o coelho correr.
-- Tocar e soltar rapidamente o botão de ação dispara, inclusive enquanto o joystick continua apontado para a frente. Assim, o jogador pode manter o movimento e atirar durante a caminhada ou corrida. Sem poder, o disparo consome uma cenoura.
+- Tocar e soltar o botão de ação dispara, inclusive enquanto o joystick continua apontado para a frente. O toque curto permanece responsivo durante o movimento; manter pressionado com direção aciona a corrida. Sem poder, o disparo consome uma cenoura.
+- O botão de pulo dispara um salto uma vez por toque. Direita ou esquerda mantidas no joystick definem a direção do salto; sem direção horizontal, o salto sobe no mesmo lugar. Um toque pouco antes de aterrissar fica brevemente em buffer para não se perder.
 - Com Pena ou Fogo, o disparo usa o poder equipado. Espinho cria um espinho que cai do céu um pouco à frente do coelho.
 - Raio ativa automaticamente ao ser encontrado: por 5 segundos, o coelho corre mais rápido e atropela inimigos à frente.
 
@@ -60,6 +61,8 @@ Se o coelho for atingido por um inimigo ou obstáculo enquanto estiver com um po
 ## Som
 
 O jogo terá trilha musical original em loop e efeitos originais para caminhada, corrida, salto, coleta de cenoura, abertura de baú, obtenção e uso de cada poder, disparos, inimigos, dano, perda de coração, reinício e chegada ao portal. Os sons são sintetizados no aplicativo.
+- Ao perder um coração, a trilha faz uma pausa curta e toca um efeito descendente próprio de perda de vida. Perder apenas um poder usa o efeito de dano, sem a pausa da música.
+- Coelho, inimigos e obstáculos têm sombras e luzes em gradiente para sugerir volume e melhorar a leitura contra o cenário.
 
 ## Backlog após a primeira fase
 

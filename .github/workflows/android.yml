@@ -47,7 +47,7 @@ jobs:
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
           script: |
-            set -euo pipefail
+            set -eu
             mkdir -p emulator-evidence
             adb shell settings put system screen_off_timeout 1800000
             adb install -r app/build/outputs/apk/debug/app-debug.apk

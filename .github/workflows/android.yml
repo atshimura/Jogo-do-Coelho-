@@ -58,20 +58,18 @@ jobs:
             adb shell input tap 500 400
             sleep 2
             adb exec-out screencap -p > emulator-evidence/02-gameplay.png
-            # Pixel 7 Pro emulator screen: 2160x960 in landscape; joystick center is near 300,816.
+            # Pixel 7 Pro emulator screen: 2160x960 in landscape.
             # Diagonal holds test forward/back jumps; vertical tests a neutral jump.
-            adb shell input swipe 415 701 415 701 700
-            adb shell input swipe 185 701 185 701 700
-            adb shell input swipe 300 701 300 701 700
+            adb shell input swipe 342 701 342 701 700
+            adb shell input swipe 112 701 112 701 700
+            adb shell input swipe 227 701 227 701 700
             adb shell input tap 2030 816
-            adb shell input swipe 415 816 415 816 15000
+            adb shell input swipe 342 816 342 816 45000
             sleep 2
             adb shell pidof com.coelhitos
             adb exec-out screencap -p > emulator-evidence/03-after-obstacles.png
             adb logcat -d -v threadtime > emulator-evidence/logcat.txt
-            if grep -E "FATAL EXCEPTION|ConcurrentModificationException" emulator-evidence/logcat.txt; then
-              exit 1
-            fi
+            ! grep -E "FATAL EXCEPTION|ConcurrentModificationException" emulator-evidence/logcat.txt
       - name: Upload emulator evidence
         if: always()
         uses: actions/upload-artifact@v6

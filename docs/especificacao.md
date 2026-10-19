@@ -26,11 +26,12 @@ Jogo de plataforma 2D lateral para celular Android, sempre em orientação horiz
 
 ## Movimento e controles
 
-- O coelho anda, corre, pula e se desloca para a esquerda e para a direita.
-- O joystick virtual fica à esquerda. Direção para cima pula; diagonal para cima salta para frente.
+- O coelho é visto de lado, voltado para a direita quando avança; não fica de frente para a câmera. Sua locomoção é quadrúpede, como a de um coelho comum, com impulso das patas traseiras.
+- O coelho anda, corre, pula e se desloca para a esquerda e para a direita. Ao mudar de direção, a silhueta vira junto.
+- O joystick virtual fica à esquerda. Direção para cima inicia um salto que avança na direção em que o coelho está olhando; a diagonal para cima direciona o salto enquanto mantém o deslocamento.
 - À direita há dois botões: salto e ação.
 - Segurar o botão de ação enquanto o joystick indica uma direção faz o coelho correr.
-- Tocar e soltar rapidamente o botão de ação dispara. Sem poder, o disparo consome uma cenoura.
+- Tocar e soltar rapidamente o botão de ação dispara, inclusive enquanto o joystick continua apontado para a frente. Assim, o jogador pode manter o movimento e atirar durante a caminhada ou corrida. Sem poder, o disparo consome uma cenoura.
 - Com Pena ou Fogo, o disparo usa o poder equipado. Espinho cria um espinho que cai do céu um pouco à frente do coelho.
 - Raio ativa automaticamente ao ser encontrado: por 5 segundos, o coelho corre mais rápido e atropela inimigos à frente.
 

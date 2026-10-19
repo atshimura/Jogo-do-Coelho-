@@ -49,10 +49,10 @@ final class GameView extends View {
     private final ArrayList<Burst> bursts = new ArrayList<>();
     private final ArrayList<Decor> decor = new ArrayList<>();
     private float w, h, ground, unit, levelLength, camera, playerX, playerY, vy;
-    private float normalSpeed, bunnyH, bunnyW, hitCooldown, powerTime, animTime, lastFrame;
+    private float normalSpeed, bunnyH, bunnyW, hitCooldown, powerTime, animTime, lastFrame, jumpForwardSpeed;
     private float stepTimer;
     private int hearts = 3, carrots = 0, power = 0, state = 0, collectedChests = 0;
-    private boolean onGround = true, leftHeld, rightHeld, upHeld, jumpHeld, actionHeld;
+    private boolean onGround = true, leftHeld, rightHeld, upHeld, jumpHeld, actionHeld, facingRight = true;
     private int stickPointer = -1, actionPointer = -1, jumpPointer = -1;
     private float stickX, stickY;
     private long actionDownAt;
@@ -82,7 +82,8 @@ final class GameView extends View {
         unit = h / 360f;
         ground = h * .82f;
         bunnyH = h * .245f;
-        bunnyW = bunnyH * .82f;
+        // Silhueta lateral: o personagem tem corpo comprido e fica de quatro.
+        bunnyW = bunnyH * 1.12f;
         normalSpeed = h * .38f;
         levelLength = normalSpeed * 180f;
         float now = System.nanoTime() / 1_000_000_000f;
@@ -104,7 +105,7 @@ final class GameView extends View {
     private void resetLevel() {
         pickups.clear(); enemies.clear(); hazards.clear(); shots.clear(); bursts.clear(); decor.clear();
         hearts=3; carrots=0; power=NONE; powerTime=0; collectedChests=0;
-        playerX = h*.65f; playerY = ground-bunnyH; vy=0; onGround=true;
+        playerX = h*.65f; playerY = ground-bunnyH; vy=0; jumpForwardSpeed=0; onGround=true; facingRight=true;
         camera=0; hitCooldown=0; leftHeld=rightHeld=upHeld=jumpHeld=actionHeld=false;
         for(int i=0;i<5;i++) pickups.add(new Pickup(playerX+65*unit + i*112*unit, 0, 0));
         for(int i=0;i<5;i++) pickups.add(new Pickup(levelLength*(.12f+i*.17f), 0, 0));
@@ -139,9 +140,11 @@ final class GameView extends View {
             if(powerTime<=0) { power=NONE; say("O Raio acabou"); }
         }
         float dir = (rightHeld?1:0) - (leftHeld?1:0);
+        if (Math.abs(dir)>.1f) facingRight=dir>0;
         boolean running = actionHeld && Math.abs(dir)>.1f;
         float speed = normalSpeed*(running?1.7f:1f)*(power==LIGHTNING?1.55f:1f);
-        playerX += dir*speed*dt;
+        if (Math.abs(dir)>.1f) playerX += dir*speed*dt;
+        else if (!onGround && jumpForwardSpeed!=0) playerX += jumpForwardSpeed*dt;
         if(Math.abs(dir)>.1f && onGround) {
             stepTimer-=dt;
             if(stepTimer<=0) { audio.effect(running?15:14); stepTimer=running?.34f:.48f; }
@@ -151,7 +154,7 @@ final class GameView extends View {
         if (!onGround) {
             vy += h*3.7f*dt;
             playerY += vy*dt;
-            if (playerY+bunnyH>=ground) { playerY=ground-bunnyH; vy=0; onGround=true; }
+            if (playerY+bunnyH>=ground) { playerY=ground-bunnyH; vy=0; onGround=true; jumpForwardSpeed=0; }
         } else playerY=ground-bunnyH;
         float target=playerX-w*.28f;
         camera=Math.max(0,Math.min(levelLength-w,target));
@@ -206,7 +209,14 @@ final class GameView extends View {
         if(n<30)return THORN; if(n<45)return LIGHTNING; if(n<75)return FEATHER; return FIRE;
     }
     private String powerName(int pwr) { return pwr==THORN?"Poder Espinho!":pwr==LIGHTNING?"Poder Raio!":pwr==FEATHER?"Poder Pena!":"Poder Fogo!"; }
-    private void jump() { if(!onGround)return; vy=-h*1.47f; onGround=false; audio.effect(6); }
+    private void jump() {
+        if(!onGround)return;
+        // Um salto sem direção também avança para o lado para o qual o coelho está olhando.
+        float dir=(rightHeld?1:leftHeld?-1:(facingRight?1:-1));
+        if(Math.abs(dir)>.1f) facingRight=dir>0;
+        jumpForwardSpeed=normalSpeed*.82f*dir;
+        vy=-h*1.47f; onGround=false; audio.effect(6);
+    }
     private void say(String s) { notice=s; noticeTime=1.25f; }
     private void hurt() {
         if(hitCooldown>0 || state!=1)return;
@@ -218,8 +228,8 @@ final class GameView extends View {
 
     private void shoot() {
         if(state!=1)return;
-        float direction=(leftHeld&&!rightHeld)?-1:1;
-        float sx=playerX+(direction>0?bunnyW*.9f:-bunnyW*.1f), sy=playerY+bunnyH*.45f, v=650*unit*direction;
+        float direction=(leftHeld&&!rightHeld)?-1:(rightHeld&&!leftHeld)?1:(facingRight?1:-1);
+        float sx=playerX+(direction>0?bunnyW*.94f:-bunnyW*.04f), sy=playerY+bunnyH*.56f, v=650*unit*direction;
         if(power==THORN) {
             shots.add(new Shot(playerX+direction*bunnyW*1.8f, ground-260*unit, 0, 550*unit, 1, 4, 0));
             audio.effect(10);
@@ -328,25 +338,46 @@ final class GameView extends View {
         }
     }
     private void drawRabbit(Canvas c,float x,float y) {
-        float s=bunnyH, bob=onGround?(float)Math.sin(animTime*(rightHeld||leftHeld?16:4))*s*.018f:0;
+        float s=bunnyH;
+        boolean moving=rightHeld||leftHeld;
+        float phase=animTime*(actionHeld?19:15);
+        float bob=onGround?(float)Math.sin(animTime*(moving?16:4))*s*(moving?.018f:.008f):0;
         y+=bob;
         c.save();
-        if(leftHeld&&!rightHeld) { c.scale(-1,1,x+bunnyW/2,y+bunnyH/2); }
+        if(!facingRight) { c.scale(-1,1,x+bunnyW/2,y+bunnyH/2); }
         if(hitCooldown>0 && ((int)(hitCooldown*12)%2==0)) p.setAlpha(110); else p.setAlpha(255);
+        // Cauda, corpo comprido e cabeça em perfil, voltada para a direita.
         p.setColor(Color.rgb(255,248,236));
-        c.drawOval(x+bunnyW*.12f,y+s*.22f,x+bunnyW*.87f,y+s*.97f,p);
-        c.drawOval(x+bunnyW*.27f,y-s*.28f,x+bunnyW*.49f,y+s*.31f,p);
-        c.drawOval(x+bunnyW*.51f,y-s*.35f,x+bunnyW*.73f,y+s*.29f,p);
+        c.drawCircle(x+bunnyW*.10f,y+s*.68f,s*.115f,p);
+        c.drawOval(x+bunnyW*.15f,y+s*.40f,x+bunnyW*.73f,y+s*.82f,p);
+        // Pernas articuladas: quatro apoios no chão e recolhidos durante o salto.
+        float stride=onGround&&moving?(float)Math.sin(phase)*s*.075f:0;
+        float tuck=onGround?0:s*.10f;
+        p.setColor(Color.rgb(244,228,210));
+        c.drawOval(x+bunnyW*.25f+stride,y+s*.62f,x+bunnyW*.51f+stride,y+s*.91f,p);
+        c.drawOval(x+bunnyW*.54f-stride,y+s*.67f,x+bunnyW*.68f-stride,y+s*.94f,p);
+        c.drawOval(x+bunnyW*.68f+stride*.55f,y+s*.63f-tuck,x+bunnyW*.79f+stride*.55f,y+s*.88f-tuck,p);
+        c.drawOval(x+bunnyW*.79f-stride*.55f,y+s*.66f-tuck,x+bunnyW*.89f-stride*.55f,y+s*.91f-tuck,p);
+        p.setColor(Color.rgb(251,209,139));
+        c.drawOval(x+bunnyW*.14f+stride,y+s*.84f-tuck,x+bunnyW*.47f+stride,y+s*.98f-tuck,p);
+        c.drawOval(x+bunnyW*.35f-stride,y+s*.86f-tuck,x+bunnyW*.57f-stride,y+s*.98f-tuck,p);
+        c.drawOval(x+bunnyW*.65f+stride*.55f,y+s*.83f-tuck,x+bunnyW*.84f+stride*.55f,y+s*.96f-tuck,p);
+        c.drawOval(x+bunnyW*.76f-stride*.55f,y+s*.86f-tuck,x+bunnyW*.94f-stride*.55f,y+s*.98f-tuck,p);
+        // Orelhas curvadas para trás deixam clara a silhueta de coelho em movimento.
+        p.setColor(Color.rgb(255,248,236));
+        c.drawOval(x+bunnyW*.56f,y+s*.08f,x+bunnyW*.68f,y+s*.46f,p);
+        c.drawOval(x+bunnyW*.66f,y+s*.13f,x+bunnyW*.77f,y+s*.45f,p);
         p.setColor(Color.rgb(246,174,178));
-        c.drawOval(x+bunnyW*.34f,y-s*.22f,x+bunnyW*.43f,y+s*.20f,p);
-        c.drawOval(x+bunnyW*.58f,y-s*.28f,x+bunnyW*.67f,y+s*.18f,p);
-        p.setColor(Color.rgb(255,252,243)); c.drawCircle(x+bunnyW*.50f,y+s*.40f,s*.32f,p);
-        p.setColor(Color.rgb(74,70,81)); c.drawCircle(x+bunnyW*.43f,y+s*.40f,s*.035f,p); c.drawCircle(x+bunnyW*.60f,y+s*.40f,s*.035f,p);
-        p.setColor(Color.rgb(245,143,156)); c.drawOval(x+bunnyW*.47f,y+s*.49f,x+bunnyW*.55f,y+s*.54f,p);
-        p.setColor(Color.rgb(245,161,165)); c.drawOval(x+bunnyW*.25f,y+s*.50f,x+bunnyW*.36f,y+s*.57f,p); c.drawOval(x+bunnyW*.67f,y+s*.50f,x+bunnyW*.78f,y+s*.57f,p);
-        p.setColor(Color.rgb(251,209,139)); c.drawOval(x+bunnyW*.18f,y+s*.83f,x+bunnyW*.48f,y+s*.99f,p); c.drawOval(x+bunnyW*.56f,y+s*.83f,x+bunnyW*.84f,y+s*.99f,p);
+        c.drawOval(x+bunnyW*.59f,y+s*.12f,x+bunnyW*.65f,y+s*.40f,p);
+        c.drawOval(x+bunnyW*.69f,y+s*.17f,x+bunnyW*.74f,y+s*.39f,p);
+        p.setColor(Color.rgb(255,248,236));
+        c.drawCircle(x+bunnyW*.76f,y+s*.43f,s*.24f,p);
+        c.drawOval(x+bunnyW*.84f,y+s*.51f,x+bunnyW*1.02f,y+s*.64f,p);
+        p.setColor(Color.rgb(74,70,81)); c.drawCircle(x+bunnyW*.85f,y+s*.39f,s*.033f,p);
+        p.setColor(Color.rgb(245,143,156)); c.drawCircle(x+bunnyW*1.01f,y+s*.565f,s*.035f,p);
+        p.setColor(Color.rgb(245,161,165)); c.drawOval(x+bunnyW*.77f,y+s*.48f,x+bunnyW*.84f,y+s*.54f,p);
         p.setAlpha(255); c.restore();
-        if(power==LIGHTNING) { p.setColor(Color.rgb(255,236,72)); p.setStyle(Paint.Style.STROKE); p.setStrokeWidth(3*unit); c.drawCircle(x+bunnyW*.5f,y+s*.48f,s*.61f,p); p.setStyle(Paint.Style.FILL); }
+        if(power==LIGHTNING) { p.setColor(Color.rgb(255,236,72)); p.setStyle(Paint.Style.STROKE); p.setStrokeWidth(3*unit); c.drawCircle(x+bunnyW*.5f,y+s*.55f,s*.55f,p); p.setStyle(Paint.Style.FILL); }
     }
     private void drawShot(Canvas c,Shot s) {
         float x=s.x-camera,y=s.y;

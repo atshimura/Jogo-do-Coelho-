@@ -11,6 +11,7 @@ Este arquivo acompanha a implementação em etapas, conforme solicitado. Cada et
 | 3 | Cinco baús e poderes, cinco cenouras iniciais, projéteis, inimigos com resistências e portal | Concluída |
 | 4 | Trilha original em loop e efeitos sonoros de ações e eventos | Concluída |
 | 5 | Compilação, verificações, APK de depuração e publicação do resultado | Concluída |
+| 6 | Ajuste da silhueta lateral quadrúpede, salto para frente e disparo durante movimento | Concluída |
 
 ## Registro
 
@@ -42,3 +43,14 @@ Este arquivo acompanha a implementação em etapas, conforme solicitado. Cada et
 - A execução GitHub Actions #2 concluiu com sucesso: Gradle executou `assembleDebug` e o upload do artefato também passou. O artefato de CI fica disponível na execução por 30 dias.
 - Limite desta validação: não havia aparelho Android nem emulador conectado. O controle por toque, o ritmo de 3 minutos e o áudio precisam ser confirmados em aparelho real.
 - O APK entregue nesta conversa foi montado com JDK 17 e ferramentas do Android SDK (javac, D8, aapt2, zipalign e apksigner). O Gradle não conseguiu acessar os repositórios de plugins a partir desta sessão local; a compilação Gradle padrão foi confirmada com sucesso no GitHub Actions.
+
+### 19/10/2026 — etapa 6 e revisão 0.1.1
+
+- O coelho agora é desenhado de perfil, olhando para o sentido do movimento, com corpo alongado e patas dianteiras e traseiras para uma corrida quadrúpede.
+- A animação articula as patas no chão e as recolhe durante o salto.
+- Um salto sem direção horizontal também avança no sentido em que o coelho está olhando. Com o joystick na diagonal, o jogador direciona o salto e segue avançando.
+- Um toque curto no botão AÇÃO dispara mesmo com o joystick mantendo o deslocamento; segurar AÇÃO com direção continua servindo para correr.
+- Atualizada a especificação funcional. Fonte compilada com JDK 17; DEX gerado com D8; APK verificado com apksigner e metadados conferidos com aapt.
+- APK debug `Coelhitos-v0.1.1-debug.apk`, versionCode 2, versionName 0.1.1. SHA-256: `4816a8455a34da0347527db6fd05eb0913815285510c53f51dd96e13b1cc7844`.
+- A compilação Gradle local continua indisponível nesta sessão porque o plugin Android não está no cache e o repositório não aceitou a conexão; a validação foi concluída diretamente com as ferramentas do Android SDK.
+- Validação de toque, animação e áudio em aparelho/emulador permanece pendente.

@@ -15,7 +15,7 @@ Este arquivo acompanha a implementação em etapas, conforme solicitado. Cada et
 | 7 | Revisão dos comandos de salto, animação de coelho e estabilidade em colisões | Concluída |
 | 8 | Instalar e exercitar o jogo em emulador Android no GitHub Actions | Concluída |
 | 9 | Corrigir disparo/pulo, dar relevo aos elementos e sincronizar áudio na perda de vida | Concluída (0.1.3) |
-| 10 | Refinar identidade visual, animação do coelho, projéteis, terreno e ícone Android | Em validação (0.2.0) |
+| 10 | Refinar identidade visual, animação do coelho, projéteis, terreno e ícone Android | Concluída (0.2.0) |
 
 ## Registro
 
@@ -98,5 +98,10 @@ Este arquivo acompanha a implementação em etapas, conforme solicitado. Cada et
 - O terreno recebeu quatro elevações jogáveis. Altura do piso é aplicada ao coelho, baús, itens, inimigos, perigos, espinho que cai e portal.
 - Fogo agora é uma bola laranja com núcleo luminoso e rastro; Pena ganhou haste e barbas para diferenciar melhor os disparos.
 - Criado ícone próprio para o app e integrado como adaptive icon e PNGs em múltiplas densidades para launchers antigos.
-- Atualizada a versão para `0.2.0` (`versionCode 5`). Build e validação de interface no emulador estão em andamento.
+- Ajustado o layout após inspecionar as capturas do emulador: os controles não aparecem mais por cima do menu, as três dicas cabem no painel e a cenoura do HUD tem escala legível.
+- GitHub Actions execução [#22](https://github.com/atshimura/Jogo-do-Coelho-/actions/runs/39516173225), tentativa 2, concluída com sucesso: Gradle `assembleDebug`, instalação em Android Emulator API 35, comandos de salto neutro/para frente/para trás, disparo com movimento, coelho ativo após a travessia e Logcat sem `FATAL EXCEPTION` nem `ConcurrentModificationException`.
+- Capturas e Logcat: artefato `Coelhitos-emulator-evidence` (`12308053193`, retenção de 14 dias). A execução automatizada também confirma as entradas; a tela de aviso do modo imersivo do Android pode aparecer na captura durante a inicialização do emulador.
+- APK debug `Coelhitos-v0.2.0-debug.apk`, `versionCode 5`, `versionName 0.2.0`. SHA-256: `33dc6cec9cf5149323b130c52ec17d2c0fc2361de5a9be42931b91b9823f358d`.
+- Artefato APK `Coelhitos-debug-apk` (`12308003118`, retenção de 30 dias), anexado à [execução #22](https://github.com/atshimura/Jogo-do-Coelho-/actions/runs/39516173225).
+- A checagem continua limitada a um trecho curto automatizado; o tempo de três minutos e a ergonomia em aparelho físico precisam de avaliação manual.
 

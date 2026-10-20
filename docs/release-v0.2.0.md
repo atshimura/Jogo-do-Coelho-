@@ -17,4 +17,10 @@
 
 ## Verificação
 
-Registro da compilação Gradle, execução em emulador, checagens de Logcat e hash do APK será preenchido após a conclusão do fluxo Android.
+GitHub Actions execução [#22, tentativa 2](https://github.com/atshimura/Jogo-do-Coelho-/actions/runs/39516173225) concluiu `assembleDebug` e o roteiro no emulador Android API 35. O processo do jogo permaneceu ativo após o trecho testado. Logcat sem `FATAL EXCEPTION` nem `ConcurrentModificationException`; registros confirmaram salto vertical, salto para frente, salto para trás e disparo.
+
+- APK debug: `Coelhitos-v0.2.0-debug.apk` (`versionCode 5`).
+- SHA-256: `33dc6cec9cf5149323b130c52ec17d2c0fc2361de5a9be42931b91b9823f358d`.
+- Artefato de emulador: `Coelhitos-emulator-evidence` (`12308053193`, 14 dias).
+- Artefato APK: `Coelhitos-debug-apk` (`12308003118`, 30 dias).
+- Limite: o teste automático cobre comandos e estabilidade por um trecho curto; não mede a fase inteira de aproximadamente três minutos nem substitui teste de áudio/ergonomia em aparelho físico.

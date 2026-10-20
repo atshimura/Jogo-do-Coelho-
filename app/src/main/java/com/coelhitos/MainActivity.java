@@ -95,7 +95,7 @@ final class GameView extends View {
         drawWorld(c);
         if (state == 0) drawTitle(c);
         else drawHud(c);
-        drawControls(c);
+        if(state!=0) drawControls(c);
         if (noticeTime > 0) {
             noticeTime -= dt;
             drawNotice(c);
@@ -549,11 +549,13 @@ final class GameView extends View {
         p.setColor(Color.rgb(244,174,63));c.drawCircle(l+211*unit,t+230*unit,12*unit,p);p.setColor(Color.WHITE);Path arrow=new Path();arrow.moveTo(l+207*unit,t+224*unit);arrow.lineTo(l+215*unit,t+230*unit);arrow.lineTo(l+207*unit,t+236*unit);arrow.close();c.drawPath(arrow,p);
         p.setTextAlign(Paint.Align.LEFT);p.setTypeface(android.graphics.Typeface.create("sans-serif",0));p.setTextSize(12*unit);p.setColor(Color.rgb(97,111,108));
         c.drawText("Explore a planície e alcance o portal.",l+29*unit,t+294*unit,p);
-        p.setColor(Color.rgb(220,231,222));c.drawRoundRect(l+270*unit,t+206*unit,r-25*unit,t+269*unit,15*unit,15*unit,p);
-        p.setColor(Color.rgb(56,79,78));p.setTextSize(12*unit);p.setTypeface(android.graphics.Typeface.create("sans-serif-rounded",1));
-        c.drawText("MOVER",l+306*unit,t+230*unit,p);c.drawText("PULAR",l+424*unit,t+230*unit,p);c.drawText("AÇÃO",l+543*unit,t+230*unit,p);
-        p.setTypeface(android.graphics.Typeface.create("sans-serif",0));p.setTextSize(10*unit);p.setColor(Color.rgb(117,132,126));
-        c.drawText("Joystick",l+306*unit,t+249*unit,p);c.drawText("Botão azul",l+424*unit,t+249*unit,p);c.drawText("Toque dispara • segure para correr",l+543*unit,t+249*unit,p);
+        float hintL=l+270*unit,hintR=r-25*unit,hintW=hintR-hintL;
+        float hx1=hintL+hintW/6f,hx2=hintL+hintW/2f,hx3=hintL+hintW*5f/6f;
+        p.setColor(Color.rgb(220,231,222));c.drawRoundRect(hintL,t+206*unit,hintR,t+269*unit,15*unit,15*unit,p);
+        p.setColor(Color.rgb(56,79,78));p.setTextSize(12*unit);p.setTypeface(android.graphics.Typeface.create("sans-serif-rounded",1));p.setTextAlign(Paint.Align.CENTER);
+        c.drawText("MOVER",hx1,t+230*unit,p);c.drawText("PULAR",hx2,t+230*unit,p);c.drawText("AÇÃO",hx3,t+230*unit,p);
+        p.setTypeface(android.graphics.Typeface.create("sans-serif",0));p.setTextSize(9*unit);p.setColor(Color.rgb(117,132,126));
+        c.drawText("Direcional",hx1,t+249*unit,p);c.drawText("Salta",hx2,t+249*unit,p);c.drawText("Toque atira",hx3,t+249*unit,p);
         p.setTextAlign(Paint.Align.CENTER);p.setColor(Color.rgb(117,132,126));p.setTextSize(10*unit);c.drawText("TOQUE PARA COMEÇAR",w*.5f,b-13*unit,p);
     }
     private void drawHud(Canvas c) {
@@ -561,7 +563,7 @@ final class GameView extends View {
         p.setColor(Color.rgb(82,93,96));p.setTypeface(android.graphics.Typeface.create("sans-serif-rounded",1));p.setTextAlign(Paint.Align.LEFT);p.setTextSize(10*unit);c.drawText("VIDAS",25*unit,27*unit,p);
         for(int i=0;i<3;i++)drawHeart(c,31*unit+i*25*unit,43*unit,hearts>i?Color.rgb(239,86,105):Color.rgb(205,213,211),7*unit);
         p.setColor(Color.rgb(218,228,222));c.drawLine(111*unit,22*unit,111*unit,49*unit,p);
-        drawCarrot(c,132*unit,39*unit,unit*.72f);
+        drawCarrot(c,132*unit,39*unit,10*unit);
         p.setColor(Color.rgb(71,84,82));p.setTextSize(15*unit);c.drawText("×"+carrots,148*unit,45*unit,p);
         float prog=Math.min(1,playerX/levelLength);
         p.setColor(Color.argb(222,255,255,255));c.drawRoundRect(w*.385f,10*unit,w*.615f,53*unit,16*unit,16*unit,p);

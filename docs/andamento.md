@@ -15,6 +15,7 @@ Este arquivo acompanha a implementação em etapas, conforme solicitado. Cada et
 | 7 | Revisão dos comandos de salto, animação de coelho e estabilidade em colisões | Concluída |
 | 8 | Instalar e exercitar o jogo em emulador Android no GitHub Actions | Concluída |
 | 9 | Corrigir disparo/pulo, dar relevo aos elementos e sincronizar áudio na perda de vida | Concluída (0.1.3) |
+| 10 | Refinar identidade visual, animação do coelho, projéteis, terreno e ícone Android | Em validação (0.2.0) |
 
 ## Registro
 
@@ -87,3 +88,15 @@ Este arquivo acompanha a implementação em etapas, conforme solicitado. Cada et
 - APK debug `Coelhitos-v0.1.3-debug.apk`, `versionCode 4`, `versionName 0.1.3`; SHA-256: `2505f37d36c6aad88b586cfd8f84607659962f62455f6d1477ec2afa921e38a8`.
 - Artefato APK `Coelhitos-debug-apk` (`12230369269`, retenção de 30 dias), disponível na [execução #17](https://github.com/atshimura/Jogo-do-Coelho-/actions/runs/39345854869).
 - Limite: a fase completa de três minutos, a mixagem de áudio e a ergonomia em aparelho físico ainda precisam de avaliação manual.
+
+### 20/10/2026 — etapa 10: acabamento visual e ícone (0.2.0)
+
+- Menu inicial refeito com painel de apresentação, título, resumo da aventura e hierarquia visual mais clara.
+- HUD redesenhado com corações e cenouras vetoriais, barra de progresso, nome da fase e indicador de poder; removidos emojis dependentes da fonte do aparelho.
+- Controles virtuais ganharam contornos, luz, sombras, setas direcionais e símbolos próprios de ação/pulo, mantendo as mesmas áreas de toque.
+- A caminhada do coelho agora usa ciclos sincronizados: as duas patas traseiras impulsionam pequenos saltos e as dianteiras acompanham juntas, sem alternância felina.
+- O terreno recebeu quatro elevações jogáveis. Altura do piso é aplicada ao coelho, baús, itens, inimigos, perigos, espinho que cai e portal.
+- Fogo agora é uma bola laranja com núcleo luminoso e rastro; Pena ganhou haste e barbas para diferenciar melhor os disparos.
+- Criado ícone próprio para o app e integrado como adaptive icon e PNGs em múltiplas densidades para launchers antigos.
+- Atualizada a versão para `0.2.0` (`versionCode 5`). Build e validação de interface no emulador estão em andamento.
+

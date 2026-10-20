@@ -1,6 +1,6 @@
 # Coelhitos — especificação funcional
 
-**Versão:** 1.2 — 19/10/2026
+**Versão:** 1.3 — 20/10/2026
 **Escopo inicial:** protótipo Android com a primeira fase completa.
 
 ## Conceito
@@ -17,7 +17,7 @@ Jogo de plataforma 2D lateral para celular Android, sempre em orientação horiz
 
 ## Primeira fase
 
-- A fase inicial é uma planície com grama, poucas árvores e elementos de fantasia.
+- A fase inicial é uma planície com grama, poucas árvores, morros e trechos de subida; a forma do terreno também afeta o movimento e as colisões.
 - O jogador deve levar aproximadamente 3 minutos para chegar ao portal no ritmo normal.
 - A fase contém exatamente 5 baús. Tocar em um baú concede um poder aleatório.
 - Há 5 cenouras disponíveis para coleta no começo da fase; outras cenouras aparecem pelo caminho. Cada cenoura coletada dá um disparo.
@@ -63,6 +63,9 @@ Se o coelho for atingido por um inimigo ou obstáculo enquanto estiver com um po
 O jogo terá trilha musical original em loop e efeitos originais para caminhada, corrida, salto, coleta de cenoura, abertura de baú, obtenção e uso de cada poder, disparos, inimigos, dano, perda de coração, reinício e chegada ao portal. Os sons são sintetizados no aplicativo.
 - Ao perder um coração, a trilha faz uma pausa curta e toca um efeito descendente próprio de perda de vida. Perder apenas um poder usa o efeito de dano, sem a pausa da música.
 - Coelho, inimigos e obstáculos têm sombras e luzes em gradiente para sugerir volume e melhorar a leitura contra o cenário.
+- A interface usa painéis translúcidos, indicadores desenhados no próprio jogo, hierarquia tipográfica clara e controles circulares com símbolos e rótulos legíveis.
+- O aplicativo inclui ícone próprio nos formatos adaptativo e legado do Android.
+- O projétil de Fogo tem corpo laranja, núcleo amarelo, halo e rastro; a Pena tem haste e barbas desenhadas para que os dois poderes sejam fáceis de distinguir.
 
 ## Backlog após a primeira fase
 
@@ -76,3 +79,4 @@ O jogo terá trilha musical original em loop e efeitos originais para caminhada,
 - A ação de Espinho, Pena e Fogo ocorre ao disparar; Raio ativa no momento da coleta.
 - A primeira fase terá cinco cenouras colocadas perto do começo e outras recompensas de coração ao longo do percurso, sem alterar a quantidade inicial.
 - Os desenhos serão feitos no Canvas, sem imagens externas, para manter o APK leve e a direção visual original.
+

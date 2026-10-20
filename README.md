@@ -18,6 +18,7 @@ APK de depuração: `app/build/outputs/apk/debug/app-debug.apk`.
 - [Etapas e andamento](docs/andamento.md)
 - [Notas da versão 0.1.2](docs/release-v0.1.2.md)
 - [Notas da versão 0.1.3](docs/release-v0.1.3.md)
+- [Notas da versão 0.2.0](docs/release-v0.2.0.md)
 - [Notas da versão 0.1.1](docs/release-v0.1.1.md)
 - [Notas da versão 0.1.0](docs/release-v0.1.0.md)
 
@@ -26,3 +27,8 @@ APK de depuração: `app/build/outputs/apk/debug/app-debug.apk`.
 Visual 2D lateral original, alegre e colorido, com formas arredondadas e ambientes de fantasia. Referência de clima e acabamento: jogos de plataforma Kirby para Nintendo Switch, em especial *Kirby’s Return to Dream Land Deluxe*. Personagens, cenários, música e efeitos são próprios; não são usados recursos da Nintendo.
 
 Trilha e efeitos são sintetizados no próprio aplicativo, sem arquivos externos ou dependências de áudio.
+
+## Identidade visual do aplicativo
+
+O ícone Android Coelhitos está incluído em recursos adaptativos (Android 8+) e nos tamanhos tradicionais para compatibilidade com versões anteriores. A tela inicial, HUD e controles foram redesenhados com painéis translúcidos, tipografia arredondada, ícones vetoriais próprios e cores consistentes.
+

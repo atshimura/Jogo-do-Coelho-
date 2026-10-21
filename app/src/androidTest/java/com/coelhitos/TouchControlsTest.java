@@ -167,6 +167,30 @@ public final class TouchControlsTest {
         clearAndJumpOver(true,0,3);
     }
 
+    @Test
+    public void testRabbitWalksIntoPortalBeforeLevelComplete() throws Exception {
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(()->{
+            try {
+                float portalCenter=fieldFloat("levelLength")-game.getWidth()*.08f;
+                float bunnyW=fieldFloat("bunnyW");
+                setField("playerX",portalCenter-bunnyW*1.25f);
+                setField("camera",Math.max(0,fieldFloat("playerX")-game.getWidth()*.28f));
+                Method enter=GameView.class.getDeclaredMethod("beginPortalEntry");enter.setAccessible(true);enter.invoke(game);
+            } catch(Exception e) { throw new RuntimeException(e); }
+        });
+        assertEquals("approaching the portal starts a visible entry sequence",3,fieldInt("state"));
+        float start=fieldFloat("playerX");
+        Method step=GameView.class.getDeclaredMethod("updatePortalEntry",float.class);step.setAccessible(true);
+        for(int i=0;i<30 && fieldInt("state")==3;i++) {
+            InstrumentationRegistry.getInstrumentation().runOnMainSync(()->{
+                try { step.invoke(game,.1f); } catch(Exception e) { throw new RuntimeException(e); }
+            });
+        }
+        assertTrue("rabbit should walk forward into the portal",fieldFloat("playerX")>start);
+        assertEquals("level completion comes after portal entry",2,fieldInt("state"));
+        assertFalse("touch movement is cleared during entry",fieldBoolean("rightHeld"));
+    }
+
     private void clearAndJumpOver(boolean enemy,int type,int hp) throws Exception {
         InstrumentationRegistry.getInstrumentation().runOnMainSync(()->{
             try {

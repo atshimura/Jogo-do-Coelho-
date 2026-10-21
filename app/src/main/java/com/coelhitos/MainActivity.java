@@ -56,6 +56,7 @@ final class GameView extends View {
     private float w, h, ground, unit, levelLength, camera, playerX, playerY, vy;
     private float normalSpeed, bunnyH, bunnyW, hitCooldown, powerTime, animTime, lastFrame, jumpForwardSpeed;
     private float stepTimer;
+    private float portalEntryTime;
     private int hearts = 3, carrots = 0, power = 0, state = 0, collectedChests = 0;
     private boolean onGround = true, leftHeld, rightHeld, upHeld, jumpHeld, actionHeld, facingRight = true, restartPending;
     private int stickPointer = -1, actionPointer = -1, jumpPointer = -1;
@@ -111,11 +112,11 @@ final class GameView extends View {
         float dt = lastFrame == 0 ? .016f : Math.min(.04f, now-lastFrame);
         lastFrame = now;
         animTime += dt;
-        if (state == 1) update(dt);
+        if (state == 1 || state == 3) update(dt);
         drawWorld(c);
         if (state == 0) drawTitle(c);
         else drawHud(c);
-        if(state!=0) drawControls(c);
+        if(state==1) drawControls(c);
         if (noticeTime > 0) {
             noticeTime -= dt;
             drawNotice(c);
@@ -157,6 +158,7 @@ final class GameView extends View {
     private void beginGame() { resetLevel(); state=1; audio.start(); }
 
     private void update(float dt) {
+        if(state==3) { updatePortalEntry(dt); return; }
         if (hitCooldown>0) hitCooldown-=dt;
         if (power==LIGHTNING || power==SUPER_JUMP) {
             powerTime-=dt;
@@ -235,7 +237,29 @@ final class GameView extends View {
         }
         Iterator<Burst> bi=bursts.iterator();
         while(bi.hasNext()) { Burst b=bi.next(); b.age+=dt; if(b.age>.32f) bi.remove(); }
-        if(playerX>=levelLength-w*.8f) { state=2; audio.effect(7); audio.stopMusic(); say("Você encontrou o próximo portal!"); }
+        float portalCenter=levelLength-w*.08f;
+        if(dir>0 && playerX+bunnyW*.5f>=portalCenter-bunnyW*.9f) beginPortalEntry();
+    }
+
+    private void beginPortalEntry() {
+        state=3; portalEntryTime=0;
+        facingRight=true; leftHeld=rightHeld=upHeld=jumpHeld=actionHeld=false;
+        stickPointer=actionPointer=jumpPointer=-1; jumpBufferTime=0; queuedJumpDirection=0;
+        onGround=true; vy=0; jumpForwardSpeed=0;
+    }
+
+    private void updatePortalEntry(float dt) {
+        portalEntryTime+=dt;
+        facingRight=true; rightHeld=true; onGround=true; vy=0;
+        float portalCenter=levelLength-w*.08f;
+        float targetX=portalCenter-bunnyW*.5f;
+        playerX=Math.min(targetX,playerX+normalSpeed*.62f*dt);
+        ground=terrainY(playerX); playerY=ground-bunnyH;
+        camera=Math.max(0,Math.min(levelLength-w,playerX-w*.28f));
+        if(playerX>=targetX || portalEntryTime>=2.4f) {
+            playerX=targetX; ground=terrainY(playerX); playerY=ground-bunnyH;
+            rightHeld=false; state=2; audio.effect(7); audio.stopMusic(); say("Você entrou no portal!");
+        }
     }
 
     private int randomPower() {
@@ -319,7 +343,7 @@ final class GameView extends View {
         for(Pickup q:pickups) drawPickup(c,q);
         for(Enemy e:enemies) if(!e.dead) drawEnemy(c,e);
         drawPortal(c);
-        if(state!=0) drawRabbit(c,playerX-camera,playerY);
+        if(state!=0 && state!=2) drawRabbit(c,playerX-camera,playerY);
         for(Shot s:shots) drawShot(c,s);
         for(Burst b:bursts) drawBurst(c,b);
     }
@@ -439,7 +463,7 @@ final class GameView extends View {
     }
     private void drawRabbit(Canvas c,float x,float y) {
         float s=bunnyH;
-        boolean moving=rightHeld||leftHeld;
+        boolean moving=state==3||rightHeld||leftHeld;
         float gait=(float)Math.sin(animTime*(actionHeld?15.5f:10.5f));
         boolean airbornePose=!onGround || (moving && gait>0);
         float hop=onGround&&moving?Math.max(0,gait)*s*.055f:0;
@@ -458,8 +482,11 @@ final class GameView extends View {
         Bitmap sprite=airbornePose?rabbitHop:rabbitIdle;
         if(sprite!=null) {
             float dw=spriteW, dh=s;
-            RectF dst=new RectF(x,y,x+dw,y+dh);
-            if(hitCooldown>0 && ((int)(hitCooldown*12)%2==0))p.setAlpha(115);else p.setAlpha(255);
+            float portalScale=state==3?Math.max(.04f,1f-portalEntryTime/1.7f):1f;
+            float scaledW=dw*portalScale,scaledH=dh*portalScale;
+            RectF dst=new RectF(x+(dw-scaledW)*.5f,y+dh-scaledH,x+(dw+scaledW)*.5f,y+dh);
+            if(state==3)p.setAlpha((int)(255*portalScale));
+            else if(hitCooldown>0 && ((int)(hitCooldown*12)%2==0))p.setAlpha(115);else p.setAlpha(255);
             c.save();
             if(!facingRight)c.scale(-1,1,x+dw*.5f,y+dh*.5f);
             c.drawBitmap(sprite,null,dst,p);
@@ -500,6 +527,7 @@ final class GameView extends View {
     }
     private void drawPortal(Canvas c) {
         float y=terrainY(levelLength), x=levelLength-camera-w*.08f;
+        if(state==3) { p.setColor(Color.argb(72,214,172,255));c.drawOval(x-48*unit,y-158*unit,x+48*unit,y+9*unit,p); }
         p.setColor(Color.rgb(109,64,180)); c.drawRoundRect(x-30*unit,y-155*unit,x+30*unit,y,30*unit,30*unit,p);
         p.setColor(Color.rgb(154,104,229)); c.drawRoundRect(x-22*unit,y-145*unit,x+22*unit,y,24*unit,24*unit,p);
         p.setColor(Color.rgb(224,248,255)); c.drawOval(x-13*unit,y-130*unit,x+13*unit,y-16*unit,p);
@@ -604,6 +632,7 @@ final class GameView extends View {
         // getX()/getY() sem índice devolvem o dedo 0 e quebram o joystick multitoque.
         float x=e.getX(idx),y=e.getY(idx);
         if(state==0) { if(e.getAction()==MotionEvent.ACTION_DOWN) { beginGame(); return true; } return true; }
+        if(state==3) return true;
         if(state==2) { if(e.getAction()==MotionEvent.ACTION_DOWN) { beginGame(); return true; } return true; }
         switch(e.getActionMasked()) {
             case MotionEvent.ACTION_DOWN:

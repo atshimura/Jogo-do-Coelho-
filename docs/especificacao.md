@@ -60,7 +60,7 @@ Se o coelho for atingido por um inimigo ou obstáculo enquanto estiver com um po
 - Inimigos têm resistência variável: o inimigo mais fraco morre com um disparo e o mais resistente com três.
 - O coelho começa com 3 corações. Também pode encontrar corações durante o caminho.
 - Ao perder os 3 corações, a fase reinicia desde o começo.
-- O objetivo é alcançar o portal no fim da fase; ele representa a passagem à fase seguinte.
+- O objetivo é alcançar o portal no fim da fase; ele representa a passagem à fase seguinte. Ao se aproximar pelo lado direito, o coelho continua andando calmamente, entra no portal e só então a fase é concluída. Durante essa animação, os controles ficam temporariamente bloqueados.
 
 ## Som
 

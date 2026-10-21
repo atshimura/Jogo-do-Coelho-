@@ -19,6 +19,7 @@ Este arquivo acompanha a implementação em etapas, conforme solicitado. Cada et
 | 11 | Unificar o mascote do jogo com o coelho do ícone, mantendo poses de repouso e salto | Concluída (0.2.1) |
 | 12 | Corrigir multitoque e integrar arte aprovada dos inimigos/obstáculos | Concluída (0.3.0) |
 | 13 | Ajustar poderes, adicionar Supersalto e garantir evasão com salto cronometrado | Concluída (0.4.0) |
+| 14 | Tornar natural a aproximação e entrada do coelho no portal | Em validação (0.4.1) |
 
 ## Registro
 
@@ -150,3 +151,8 @@ Este arquivo acompanha a implementação em etapas, conforme solicitado. Cada et
 - APK `Coelhitos-v0.4.0-debug.apk`, `versionCode 8`, `versionName 0.4.0`; SHA-256: `f7b8613cd527558c3561e000c683f9ac028fc21c8d55eb471105e1d43d58f012`.
 - Artefato APK `Coelhitos-debug-apk` (`12388728282`, retenção de 30 dias) e evidência (`12388703335`, retenção de 14 dias) anexados à execução #36.
 - A evasão foi confirmada nos cenários automatizados; tempo total da fase, ergonomia e visual devem ser avaliados também em aparelho físico.
+
+### 21/10/2026 — mudança v0.4.1
+
+- Ao chegar perto do portal enquanto avança, o coelho entra em uma animação curta de caminhada automática; os controles são bloqueados durante esse trecho, o sprite diminui ao atravessar a abertura e a conclusão só aparece depois da entrada.
+- Em validação: novo teste instrumentado confirma caminhada até o portal e que a conclusão ocorre após a sequência de entrada.

@@ -83,7 +83,7 @@ public final class TouchControlsTest {
         pointerDownSecond(1,1075,612,0,80,612);
         assertTrue(fieldBoolean("leftHeld"));
         assertTrue(fieldBoolean("actionHeld"));
-        SystemClock.sleep(320);
+        SystemClock.sleep(120);
         float during=fieldFloat("playerX");
         assertTrue("holding AÇÃO with left movement must keep running left: before="+before+" after="+during,during<before);
         pointerUpSecond(1,1075,612,0,80,612);
@@ -102,7 +102,7 @@ public final class TouchControlsTest {
         float before=fieldFloat("playerX");
         pointerDownSecond(1,1075,612,0,180,612);
         assertTrue(fieldBoolean("rightHeld"));
-        SystemClock.sleep(320);
+        SystemClock.sleep(120);
         float during=fieldFloat("playerX");
         assertTrue("holding AÇÃO with right movement must keep running right",during>before);
         pointerUpSecond(1,1075,612,0,180,612);

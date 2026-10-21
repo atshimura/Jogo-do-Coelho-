@@ -21,7 +21,7 @@ Jogo de plataforma 2D lateral para celular Android, sempre em orientação horiz
 - O jogador deve levar aproximadamente 3 minutos para chegar ao portal no ritmo normal.
 - A fase contém exatamente 5 baús. Tocar em um baú concede um poder aleatório.
 - Há 5 cenouras disponíveis para coleta no começo da fase; outras cenouras aparecem pelo caminho. Cada cenoura coletada dá um disparo.
-- Obstáculos: espinhos, buracos e fogo.
+- Obstáculos da primeira fase: espinhos e fogo. Buracos ficam reservados a fases futuras.
 - O coelho tem aproximadamente um quarto da altura útil da tela.
 
 ## Movimento e controles
@@ -33,7 +33,8 @@ Jogo de plataforma 2D lateral para celular Android, sempre em orientação horiz
 - À direita há dois botões: salto e ação.
 - Segurar o botão de ação enquanto o joystick indica uma direção faz o coelho correr.
 - Tocar e soltar o botão de ação dispara, inclusive enquanto o joystick continua apontado para a frente. O toque curto permanece responsivo durante o movimento; manter pressionado com direção aciona a corrida. Sem poder, o disparo consome uma cenoura.
-- O botão de pulo dispara um salto uma vez por toque. Direita ou esquerda mantidas no joystick definem a direção do salto; sem direção horizontal, o salto sobe no mesmo lugar. Um toque pouco antes de aterrissar fica brevemente em buffer para não se perder.
+- O botão de pulo dispara um salto uma vez por toque, inclusive com o joystick ativo. Direita + pulo salta para a direita; esquerda + pulo salta para a esquerda; sem direção horizontal, o salto sobe no mesmo lugar. Um toque pouco antes de aterrissar fica brevemente em buffer para não se perder.
+- Joystick, AÇÃO e PULO podem ser operados ao mesmo tempo em dedos separados; soltar um botão não cancela nem troca o controle dos outros dedos.
 - Com Pena ou Fogo, o disparo usa o poder equipado. Espinho cria um espinho que cai do céu um pouco à frente do coelho.
 - Raio ativa automaticamente ao ser encontrado: por 5 segundos, o coelho corre mais rápido e atropela inimigos à frente.
 

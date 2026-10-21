@@ -44,6 +44,7 @@ public class MainActivity extends Activity {
 final class GameView extends View {
     private final Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Bitmap rabbitIdle, rabbitHop;
+    private final Bitmap enemySmallSprite, enemyLargeSprite, spikeSprite, pitSprite, fireSprite;
     private final Random rng = new Random(44);
     private final AudioEngine audio = new AudioEngine();
     private final ArrayList<Pickup> pickups = new ArrayList<>();
@@ -60,7 +61,7 @@ final class GameView extends View {
     private int stickPointer = -1, actionPointer = -1, jumpPointer = -1;
     private float stickX, stickY;
     private long actionDownAt;
-    private float jumpBufferTime, queuedJumpDirection;
+    private float jumpBufferTime, queuedJumpDirection, lastShotDirection;
     private boolean stickJumpWasDown;
     private long startMillis;
     private final RectF stickArea = new RectF();
@@ -73,9 +74,20 @@ final class GameView extends View {
         super(context);
         rabbitIdle=BitmapFactory.decodeResource(context.getResources(),R.drawable.coelhitos_rabbit_idle);
         rabbitHop=BitmapFactory.decodeResource(context.getResources(),R.drawable.coelhitos_rabbit_hop);
+        enemySmallSprite=loadGameSprite(R.drawable.coelhitos_enemy_small);
+        enemyLargeSprite=loadGameSprite(R.drawable.coelhitos_enemy_large);
+        spikeSprite=loadGameSprite(R.drawable.coelhitos_hazard_spikes);
+        pitSprite=loadGameSprite(R.drawable.coelhitos_hazard_pit);
+        fireSprite=loadGameSprite(R.drawable.coelhitos_hazard_fire);
         p.setFilterBitmap(true);
         setFocusable(true);
         audio.start();
+    }
+
+    private Bitmap loadGameSprite(int resourceId) {
+        BitmapFactory.Options options=new BitmapFactory.Options();
+        options.inSampleSize=4;
+        return BitmapFactory.decodeResource(getResources(),resourceId,options);
     }
 
     void pause() { audio.pause(); }
@@ -131,8 +143,9 @@ final class GameView extends View {
         }
         for(int i=0;i<11;i++) {
             float x=levelLength*(.08f+i*.078f);
-            int type = i%3;
-            hazards.add(new Hazard(x, type, type==1 ? 145*unit : (54+ (i%3)*14)*unit));
+            // A fase 1 não tem buracos; eles ficam disponíveis para fases futuras.
+            int type = i%2==0 ? 0 : 2;
+            hazards.add(new Hazard(x, type, (54+ (i%3)*14)*unit));
         }
         for(int i=0;i<54;i++) {
             float x=(i*475f + (i%5)*93f)*unit;
@@ -230,20 +243,21 @@ final class GameView extends View {
     }
     private String powerName(int pwr) { return pwr==THORN?"Poder Espinho!":pwr==LIGHTNING?"Poder Raio!":pwr==FEATHER?"Poder Pena!":"Poder Fogo!"; }
     private float horizontalDirection() { return rightHeld&&!leftHeld?1:leftHeld&&!rightHeld?-1:0; }
-    private void requestJump() {
+    private void requestJump(String source) {
         queuedJumpDirection=horizontalDirection();
         if (queuedJumpDirection!=0) facingRight=queuedJumpDirection>0;
         jumpBufferTime=.22f;
-        if(onGround) launchJump(queuedJumpDirection);
+        if(onGround) launchJump(queuedJumpDirection,source);
     }
-    private void launchJump(float dir) {
+    private void launchJump(float dir) { launchJump(dir,"buffer"); }
+    private void launchJump(float dir,String source) {
         if(!onGround)return;
         // Um toque gera um salto. O buffer curto evita perder o comando se o
         // botão for apertado pouco antes de tocar o chão.
         jumpBufferTime=0;
         if(dir!=0) facingRight=dir>0;
         jumpForwardSpeed=normalSpeed*.82f*dir;
-        Log.d("CoelhitosInput","jump dir="+(int)dir);
+        Log.d("CoelhitosInput","jump dir="+(int)dir+" source="+source);
         vy=-h*1.47f; onGround=false; audio.effect(6);
     }
     private void say(String s) { notice=s; noticeTime=1.25f; }
@@ -261,8 +275,9 @@ final class GameView extends View {
 
     private void shoot() {
         if(state!=1)return;
-        Log.d("CoelhitosInput","shoot");
         float direction=(leftHeld&&!rightHeld)?-1:(rightHeld&&!leftHeld)?1:(facingRight?1:-1);
+        lastShotDirection=direction;
+        Log.d("CoelhitosInput","shoot dir="+(int)direction+" moving="+(leftHeld||rightHeld));
         float sx=playerX+(direction>0?bunnyW*.94f:-bunnyW*.04f), sy=playerY+bunnyH*.56f, v=650*unit*direction;
         if(power==THORN) {
             float targetX=playerX+direction*bunnyW*1.8f;
@@ -363,29 +378,23 @@ final class GameView extends View {
         if(x<-s*2||x>w+s*2)return;
         float g=terrainY(z.x);
         p.setShader(null); p.setStyle(Paint.Style.FILL); p.setAlpha(255);
-        p.setColor(Color.argb(65,34,48,42));
-        c.drawOval(x-s*.62f,g-3*unit,x+s*.62f,g+8*unit,p);
-        if(z.type==1) { // pit
-            p.setShader(new LinearGradient(x,g,x,g+32*unit,Color.rgb(77,111,60),Color.rgb(27,40,45),Shader.TileMode.CLAMP));
-            c.drawRoundRect(x,g-3*unit,x+s,g+31*unit,12*unit,12*unit,p); p.setShader(null);
-            p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(2*unit);p.setColor(Color.rgb(38,94,50));
-            c.drawRoundRect(x,g-3*unit,x+s,g+31*unit,12*unit,12*unit,p);p.setStyle(Paint.Style.FILL);
-            p.setColor(Color.rgb(34,43,48)); c.drawOval(x+6*unit,g+2*unit,x+s-5*unit,g+27*unit,p);
-            p.setColor(Color.argb(110,126,157,96));c.drawLine(x+12*unit,g+2*unit,x+s-13*unit,g+2*unit,p);
-        } else if(z.type==0) { // spikes
-            for(int i=0;i<3;i++) {
-                float left=x-s*.45f+i*s*.3f, tip=x-s*.3f+i*s*.3f, right=x-s*.15f+i*s*.3f;
-                Path t=new Path();t.moveTo(left,g);t.lineTo(tip,g-s*.58f);t.lineTo(right,g);t.close();
-                p.setShader(new LinearGradient(tip,g-s*.58f,tip,g,Color.rgb(250,255,243),Color.rgb(121,151,139),Shader.TileMode.CLAMP));
-                c.drawPath(t,p);p.setShader(null);p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(1.5f*unit);p.setColor(Color.rgb(56,91,77));c.drawPath(t,p);p.setStyle(Paint.Style.FILL);
-                p.setColor(Color.argb(170,255,255,229));p.setStrokeWidth(1.2f*unit);c.drawLine(tip,g-s*.48f,tip-s*.055f,g-s*.15f,p);
-            }
-        } else { // flame
-            p.setShader(new LinearGradient(x,g-s*.7f,x,g,Color.rgb(255,239,120),Color.rgb(232,53,31),Shader.TileMode.CLAMP));
-            c.drawOval(x-s*.35f,g-s*.7f,x+s*.35f,g+2*unit,p);p.setShader(null);
-            p.setColor(Color.rgb(255,184,47)); c.drawOval(x-s*.22f,g-s*.49f,x+s*.22f,g,p);
-            p.setColor(Color.rgb(255,246,185)); c.drawOval(x-s*.09f,g-s*.30f,x+s*.08f,g-2*unit,p);
+        p.setColor(Color.argb(55,34,48,42));
+        c.drawOval(x-s*.72f,g-3*unit,x+s*.72f,g+7*unit,p);
+        if(z.type==1) { // asset preparado para fases futuras; a fase 1 não cria buracos.
+            drawSpriteAtBottom(c,pitSprite,x+s*.5f,g+s*.17f,s*1.12f,s*.70f);
+        } else if(z.type==0) {
+            drawSpriteAtBottom(c,spikeSprite,x,g+s*.06f,s*1.72f,s*1.34f);
+        } else {
+            drawSpriteAtBottom(c,fireSprite,x,g+s*.05f,s*1.58f,s*1.34f);
         }
+    }
+    private float drawSpriteAtBottom(Canvas c,Bitmap sprite,float centerX,float bottomY,float maxW,float maxH) {
+        if(sprite==null)return 0;
+        float aspect=sprite.getWidth()/(float)sprite.getHeight();
+        float height=Math.min(maxH,maxW/aspect),width=height*aspect;
+        p.setShader(null);p.setStyle(Paint.Style.FILL);p.setAlpha(255);p.setColor(Color.WHITE);
+        c.drawBitmap(sprite,null,new RectF(centerX-width*.5f,bottomY-height,centerX+width*.5f,bottomY),p);
+        return height;
     }
     private void drawPickup(Canvas c,Pickup q) {
         float pickupGround=terrainY(q.x);
@@ -406,23 +415,16 @@ final class GameView extends View {
         p.setColor(Color.rgb(255,245,178)); c.drawCircle(x,y-14*s,3*s,p);
     }
     private void drawEnemy(Canvas c,Enemy e) {
-        float baseY=terrainY(e.x), x=e.x-camera, y=baseY-e.size*.48f;
-        if(x<-e.size||x>w+e.size)return;
+        float baseY=terrainY(e.x), x=e.x-camera;
+        if(x<-e.size*2||x>w+e.size*2)return;
         p.setShader(null);p.setStyle(Paint.Style.FILL);p.setAlpha(255);
-        p.setColor(Color.argb(70,33,43,53));c.drawOval(x-e.size*.42f,baseY-e.size*.13f,x+e.size*.42f,baseY+e.size*.015f,p);
-        int top=e.big?Color.rgb(235,195,255):Color.rgb(183,224,250);
-        int base=e.big?Color.rgb(126,74,164):Color.rgb(57,111,157);
-        p.setShader(new LinearGradient(x,y-e.size*.4f,x,y+e.size*.35f,top,base,Shader.TileMode.CLAMP));
-        c.drawOval(x-e.size*.48f,y-e.size*.38f,x+e.size*.48f,y+e.size*.33f,p);
-        p.setShader(null);p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(1.7f*unit);p.setColor(e.big?Color.rgb(91,56,119):Color.rgb(48,83,118));c.drawOval(x-e.size*.48f,y-e.size*.38f,x+e.size*.48f,y+e.size*.33f,p);p.setStyle(Paint.Style.FILL);
-        p.setShader(new LinearGradient(x-e.size*.2f,y-e.size*.6f,x-e.size*.2f,y-e.size*.25f,top,base,Shader.TileMode.CLAMP));
-        c.drawCircle(x-e.size*.25f,y-e.size*.42f,e.size*.20f,p); c.drawCircle(x+e.size*.25f,y-e.size*.42f,e.size*.20f,p);p.setShader(null);
-        p.setColor(Color.argb(110,255,255,255));c.drawCircle(x-e.size*.30f,y-e.size*.46f,e.size*.055f,p);
-        p.setColor(Color.WHITE); c.drawCircle(x-e.size*.14f,y-e.size*.05f,e.size*.09f,p); c.drawCircle(x+e.size*.14f,y-e.size*.05f,e.size*.09f,p);
-        p.setColor(Color.rgb(48,52,78)); c.drawCircle(x-e.size*.14f,y-e.size*.04f,e.size*.04f,p); c.drawCircle(x+e.size*.14f,y-e.size*.04f,e.size*.04f,p);
+        p.setColor(Color.argb(56,33,43,53));c.drawOval(x-e.size*.68f,baseY-e.size*.13f,x+e.size*.68f,baseY+e.size*.04f,p);
+        Bitmap sprite=e.big?enemyLargeSprite:enemySmallSprite;
+        float spriteH=drawSpriteAtBottom(c,sprite,x,baseY+e.size*.06f,e.size*1.86f,e.size*1.34f);
         if(e.maxHp>1) {
-            p.setColor(Color.WHITE); c.drawRoundRect(x-e.size*.33f,y-e.size*.67f,x+e.size*.33f,y-e.size*.56f,4*unit,4*unit,p);
-            p.setColor(Color.rgb(237,92,103)); c.drawRoundRect(x-e.size*.31f,y-e.size*.65f,x-e.size*.31f+e.size*.62f* Math.max(0,e.hp)/(float)e.maxHp,y-e.size*.58f,4*unit,4*unit,p);
+            float top=baseY-spriteH-8*unit;
+            p.setColor(Color.argb(220,255,255,255)); c.drawRoundRect(x-e.size*.42f,top,x+e.size*.42f,top+7*unit,4*unit,4*unit,p);
+            p.setColor(Color.rgb(237,92,103)); c.drawRoundRect(x-e.size*.39f,top+1.2f*unit,x-e.size*.39f+e.size*.78f*Math.max(0,e.hp)/(float)e.maxHp,top+5.8f*unit,3*unit,3*unit,p);
         }
     }
     private void drawRabbit(Canvas c,float x,float y) {
@@ -581,16 +583,25 @@ final class GameView extends View {
     }
 
     @Override public boolean onTouchEvent(MotionEvent e) {
-        float x=e.getX(),y=e.getY(); int idx=e.getActionIndex(); int id=e.getPointerId(idx);
+        int idx=e.getActionIndex(); int id=e.getPointerId(idx);
+        // Em ACTION_POINTER_DOWN, as coordenadas do dedo novo estão no índice de ação;
+        // getX()/getY() sem índice devolvem o dedo 0 e quebram o joystick multitoque.
+        float x=e.getX(idx),y=e.getY(idx);
         if(state==0) { if(e.getAction()==MotionEvent.ACTION_DOWN) { beginGame(); return true; } return true; }
         if(state==2) { if(e.getAction()==MotionEvent.ACTION_DOWN) { beginGame(); return true; } return true; }
         switch(e.getActionMasked()) {
             case MotionEvent.ACTION_DOWN:
             case MotionEvent.ACTION_POINTER_DOWN:
-                if(x<w*.36f && y>h*.52f) { stickPointer=id; updateStick(x,y); return true; }
+                if(x<w*.36f && y>h*.52f) {
+                    if(stickPointer==-1) { stickPointer=id; updateStick(x,y); }
+                    return true;
+                }
                 if(x>w*.78f && y>h*.58f) {
-                    if(x>w*.89f) { jumpPointer=id; jumpHeld=true; requestJump(); }
-                    else { actionPointer=id; actionHeld=true; actionDownAt=e.getEventTime(); }
+                    if(x>w*.89f) {
+                        if(jumpPointer==-1) { jumpPointer=id; jumpHeld=true; requestJump("button"); }
+                    } else if(actionPointer==-1) {
+                        actionPointer=id; actionHeld=true; actionDownAt=e.getEventTime();
+                    }
                     return true;
                 }
                 break;
@@ -617,7 +628,7 @@ final class GameView extends View {
         float cx=w*.105f, cy=h*.85f, dx=x-cx, dy=y-cy;
         leftHeld=dx< -h*.045f; rightHeld=dx>h*.045f;
         boolean nextUp=dy< -h*.045f;
-        if(nextUp&&!stickJumpWasDown) requestJump();
+        if(nextUp&&!stickJumpWasDown) requestJump("stick");
         stickJumpWasDown=nextUp; upHeld=nextUp;
     }
 }

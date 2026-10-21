@@ -1,6 +1,6 @@
 # Plano — controles multitoque e identidade visual (v0.3.0)
 
-**Estado:** planejamento e propostas visuais aguardando aprovação. Nenhuma alteração no comportamento ou nos recursos do jogo foi implementada nesta etapa.
+**Estado:** implementado na versão 0.3.0, aprovada a arte conceitual. APK e validação em emulador em andamento.
 
 ## 1. Diagnóstico dos controles
 
@@ -8,7 +8,7 @@ Em `app/src/main/java/com/coelhitos/MainActivity.java`, `onTouchEvent` obtém `x
 
 Isso explica os dois relatos: PULO deixa de receber o toque ou perde a direção ativa; AÇÃO pode descartar a direção de caminhada, interromper o movimento ou fazê-lo apontar para a direita. A lógica de salto e de disparo usa `leftHeld` e `rightHeld`, então depende de o joystick continuar associado ao dedo correto.
 
-## 2. Solução planejada — sem implementação
+## 2. Solução implementada
 
 1. Em `ACTION_POINTER_DOWN`, identificar a posição do dedo que acabou de tocar usando o índice de ação do próprio evento. Associar esse dedo somente ao controle que foi tocado.
 2. Manter IDs independentes para joystick, AÇÃO e PULO. Um dedo novo em um botão não deve substituir nem reclassificar o dedo que já controla o joystick.
@@ -27,9 +27,9 @@ Isso explica os dois relatos: PULO deixa de receber o toque ou perde a direção
 - Repetir os casos começando pelo joystick ou pelo botão, soltando os dedos em ordens diferentes e cancelar os toques.
 - Confirmar no emulador que o aplicativo permanece ativo e que o Logcat não mostra exceções.
 
-## 4. Propostas visuais para aprovação
+## 4. Arte visual aprovada e integrada
 
-A prancha criada para revisão contém os tipos que existem no código atual:
+A prancha aprovada foi convertida em sprites transparentes para o jogo. Ela contém:
 
 - Inimigo pequeno azul (1 golpe).
 - Inimigo grande roxo (3 golpes).
@@ -37,16 +37,16 @@ A prancha criada para revisão contém os tipos que existem no código atual:
 - Fosso/buraco.
 - Fogo de chão.
 
-A proposta é desenhá-los como criaturas e objetos 3D fofos, com textura macia e volume compatíveis com o coelho, preservando silhuetas distintas, contraste forte com a grama e leitura imediata de perigo. O visual dos inimigos não altera vida, resistência, colisão ou comportamento. O visual dos obstáculos também preserva colisões e dano.
+Os sprites usam volume, textura macia, iluminação e contornos compatíveis com o coelho. As silhuetas e o contraste com a grama permanecem claros. Vida, resistência e colisões dos inimigos e os danos dos perigos foram preservados.
 
 ### Divergência a preservar até decisão
 
 O código atual contém fossos/buracos, e a prancha os inclui para retratar o conteúdo existente. Há uma decisão funcional anterior de que a primeira fase não deve ter buracos. Portanto, mesmo que a aparência seja aprovada, o fosso deve ficar fora de qualquer implementação da fase 1 enquanto esse requisito prevalecer. A prancha é apenas uma proposta de estilo, não uma mudança nessa regra.
 
-## 5. Ordem prevista após aprovação
+## 5. Verificação e sequência concluída
 
-1. Receber aprovação ou ajustes para os cinco conceitos visuais e para a composição de obstáculos.
-2. Corrigir e testar os controles multitoque isoladamente, sem alterar poderes, física ou colisões.
-3. Produzir sprites finais transparentes dos itens aprovados e integrá-los sem alterar suas regras de jogo.
-4. Validar no emulador controles, leitura dos sprites contra o cenário, colisões e estabilidade; atualizar especificação, andamento e notas da versão.
-5. Gerar um novo APK somente depois da validação.
+1. Conceitos dos dois inimigos e dos três obstáculos aprovados.
+2. Corrigido o mapeamento de coordenadas e IDs em `ACTION_POINTER_DOWN`; os controles mantêm IDs e estados independentes.
+3. Criados seis testes de emulador com eventos multitoque sintéticos para saltos direcionais, salto neutro, tiro mantendo movimento para os dois sentidos e corrida com AÇÃO pressionada.
+4. Integrados sprites dos inimigos, espinhos e fogo; fosso reservado a fases futuras. Comportamentos e colisões foram mantidos.
+5. Build, teste em emulador e checksum serão registrados após a conclusão do CI.

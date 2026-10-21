@@ -17,7 +17,7 @@ Este arquivo acompanha a implementação em etapas, conforme solicitado. Cada et
 | 9 | Corrigir disparo/pulo, dar relevo aos elementos e sincronizar áudio na perda de vida | Concluída (0.1.3) |
 | 10 | Refinar identidade visual, animação do coelho, projéteis, terreno e ícone Android | Concluída (0.2.0) |
 | 11 | Unificar o mascote do jogo com o coelho do ícone, mantendo poses de repouso e salto | Concluída (0.2.1) |
-| 12 | Diagnosticar multitoque e apresentar arte dos inimigos/obstáculos | Planejada; aguardando aprovação visual (v0.3.0) |
+| 12 | Corrigir multitoque e integrar arte aprovada dos inimigos/obstáculos | Em validação (0.3.0) |
 
 ## Registro
 
@@ -112,8 +112,7 @@ Este arquivo acompanha a implementação em etapas, conforme solicitado. Cada et
 - Criadas poses transparentes de repouso e salto a partir do coelho do ícone, preservando pelagem branca, olhos castanhos, orelhas rosadas e cenoura.
 - Substituído o desenho vetorial simples por sprites em alta definição; a animação alterna entre apoio e salto, com as patas traseiras juntas.
 - O personagem continua lateral, vira para a esquerda/direita e mantém efeitos de invulnerabilidade, aura do Raio e sombra de contato.
-- Atualizada a versão para `0.2.1` (`versionCode 6`).
-- GitHub Actions execução [#24](https://github.com/atshimura/Jogo-do-Coelho-/actions/runs/39593141098) concluída com sucesso: compilação Gradle, instalação em Android Emulator API 35, navegação, saltos neutro/para frente/para trás, disparo com movimento, processo ativo após o percurso e Logcat sem `FATAL EXCEPTION` nem `ConcurrentModificationException`.
+- Atualizada a versão para `0.2.1` (`versionCode 6`). - GitHub Actions execução [#24](https://github.com/atshimura/Jogo-do-Coelho-/actions/runs/39593141098) concluída com sucesso: compilação Gradle, instalação em Android Emulator API 35, navegação, saltos neutro/para frente/para trás, disparo com movimento, processo ativo após o percurso e Logcat sem `FATAL EXCEPTION` nem `ConcurrentModificationException`.
 - Capturas e Logcat: artefato `Coelhitos-emulator-evidence` (`12342766264`, retenção de 14 dias). A captura final mostra o coelho novo em jogo, com escala próxima de um quarto da altura da tela.
 - APK debug `Coelhitos-v0.2.1-debug.apk`, `versionCode 6`, `versionName 0.2.1`; SHA-256: `2b19058a62821209db73244c7bb39b24df050c74c2c7df68ecf1cea15ec43c5c`.
 - Artefato APK `Coelhitos-debug-apk` (`12342629714`, retenção de 30 dias), anexado à [execução #24](https://github.com/atshimura/Jogo-do-Coelho-/actions/runs/39593141098).
@@ -127,3 +126,10 @@ Este arquivo acompanha a implementação em etapas, conforme solicitado. Cada et
 - Criada uma prancha de conceitos para os dois inimigos (azul pequeno e roxo grande) e os três obstáculos do código atual (espinhos, fosso e fogo). A integração espera a aprovação visual.
 - A prancha inclui o fosso para representar o código atual; o plano preserva a decisão anterior de não incluir buracos na fase 1.
 - Nenhum código, arte do jogo ou APK foi alterado nesta etapa.
+
+### 21/10/2026 — implementação v0.3.0
+
+- Corrigido o roteamento de ponteiros simultâneos para joystick, AÇÃO e PULO; o salto captura a direção ativa e o tiro não interrompe nem inverte o movimento.
+- Integradas as artes aprovadas dos inimigos azul/roxo, espinhos e fogo. O fosso não aparece na primeira fase, conforme a especificação; o sprite permanece como recurso para fases futuras.
+- Criados seis testes de instrumentação no Android Emulator para eventos de dois dedos, corrida, salto neutro/direcional e disparo mantendo movimento à esquerda e à direita.
+- Build e execução no emulador em andamento.

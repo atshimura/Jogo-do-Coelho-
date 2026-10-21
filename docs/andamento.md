@@ -18,7 +18,7 @@ Este arquivo acompanha a implementação em etapas, conforme solicitado. Cada et
 | 10 | Refinar identidade visual, animação do coelho, projéteis, terreno e ícone Android | Concluída (0.2.0) |
 | 11 | Unificar o mascote do jogo com o coelho do ícone, mantendo poses de repouso e salto | Concluída (0.2.1) |
 | 12 | Corrigir multitoque e integrar arte aprovada dos inimigos/obstáculos | Concluída (0.3.0) |
-| 13 | Ajustar poderes, adicionar Supersalto e garantir evasão com salto cronometrado | Em validação (0.4.0) |
+| 13 | Ajustar poderes, adicionar Supersalto e garantir evasão com salto cronometrado | Concluída (0.4.0) |
 
 ## Registro
 
@@ -144,4 +144,9 @@ Este arquivo acompanha a implementação em etapas, conforme solicitado. Cada et
 - Probabilidades atualizadas: Espinho 25%, Fogo 20%, Pena 25%, Raio 13% e Supersalto 17%; a distribuição soma 100%.
 - Espinho agora cresce do chão à frente do coelho. Raio dura 8 segundos. Supersalto é um novo poder que aumenta altura e alcance dos saltos por 20 segundos.
 - O salto direcional recebeu velocidade horizontal e impulso vertical para permitir passar por cima de espinhos, fogo e inimigos. Novos testes instrumentados verificam a evasão dos dois tipos de perigo e dos dois tamanhos de inimigo, além das probabilidades e duração dos poderes.
-- Build e testes da versão 0.4.0 em andamento.
+- GitHub Actions [execução #36](https://github.com/atshimura/Jogo-do-Coelho-/actions/runs/39691425834) concluiu com sucesso: build Gradle, instalação e testes instrumentados em emulador Android API 35.
+- Os nove testes passaram, cobrindo a distribuição dos 100 resultados possíveis dos baús, durações dos poderes, impulso do Supersalto, evasão cronometrada de espinhos, fogo e inimigos de 1/3 golpes, além dos controles existentes.
+- Logcat sem `FATAL EXCEPTION` ou `ConcurrentModificationException`; APK validado como arquivo ZIP íntegro.
+- APK `Coelhitos-v0.4.0-debug.apk`, `versionCode 8`, `versionName 0.4.0`; SHA-256: `f7b8613cd527558c3561e000c683f9ac028fc21c8d55eb471105e1d43d58f012`.
+- Artefato APK `Coelhitos-debug-apk` (`12388728282`, retenção de 30 dias) e evidência (`12388703335`, retenção de 14 dias) anexados à execução #36.
+- A evasão foi confirmada nos cenários automatizados; tempo total da fase, ergonomia e visual devem ser avaliados também em aparelho físico.

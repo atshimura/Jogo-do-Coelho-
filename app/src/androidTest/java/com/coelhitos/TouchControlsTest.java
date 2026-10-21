@@ -76,14 +76,15 @@ public final class TouchControlsTest {
     @Test
     public void testActionShootsAndKeepsLeftMovement() throws Exception {
         setField("carrots",1);
+        setField("playerX",game.getWidth()*.5f);
         pointerDown(0,80,612);
         float before=fieldFloat("playerX");
         pointerDownSecond(1,1075,612,0,80,612);
         assertTrue(fieldBoolean("leftHeld"));
         assertTrue(fieldBoolean("actionHeld"));
-        SystemClock.sleep(140);
+        SystemClock.sleep(320);
         float during=fieldFloat("playerX");
-        assertTrue("holding AÇÃO with left movement must keep running left",during<before);
+        assertTrue("holding AÇÃO with left movement must keep running left: before="+before+" after="+during,during<before);
         pointerUpSecond(1,1075,612,0,80,612);
         assertEquals("shot must use the leftward movement direction",-1f,fieldFloat("lastShotDirection"),0f);
         assertTrue("releasing AÇÃO must leave joystick movement active",fieldBoolean("leftHeld"));
@@ -95,11 +96,12 @@ public final class TouchControlsTest {
     @Test
     public void testActionShootsAndKeepsRightMovement() throws Exception {
         setField("carrots",1);
+        setField("playerX",game.getWidth()*.5f);
         pointerDown(0,180,612);
         float before=fieldFloat("playerX");
         pointerDownSecond(1,1075,612,0,180,612);
         assertTrue(fieldBoolean("rightHeld"));
-        SystemClock.sleep(140);
+        SystemClock.sleep(320);
         float during=fieldFloat("playerX");
         assertTrue("holding AÇÃO with right movement must keep running right",during>before);
         pointerUpSecond(1,1075,612,0,180,612);

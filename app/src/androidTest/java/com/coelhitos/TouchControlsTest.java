@@ -70,7 +70,7 @@ public final class TouchControlsTest {
     public void testNeutralJumpIsVertical() throws Exception {
         tap(1203,612);
         assertFalse("neutral PULO must start a jump",fieldBoolean("onGround"));
-        assertEquals("neutral jump must stay vertical",0f,fieldFloat("jumpForwardSpeed"));
+        assertEquals("neutral jump must stay vertical",0f,fieldFloat("jumpForwardSpeed"),0f);
     }
 
     @Test
@@ -85,7 +85,7 @@ public final class TouchControlsTest {
         float during=fieldFloat("playerX");
         assertTrue("holding AÇÃO with left movement must keep running left",during<before);
         pointerUpSecond(1,1075,612,0,80,612);
-        assertEquals("shot must use the leftward movement direction",-1f,fieldFloat("lastShotDirection"));
+        assertEquals("shot must use the leftward movement direction",-1f,fieldFloat("lastShotDirection"),0f);
         assertTrue("releasing AÇÃO must leave joystick movement active",fieldBoolean("leftHeld"));
         SystemClock.sleep(120);
         assertTrue("movement must continue after the shot",fieldFloat("playerX")<during);
@@ -103,7 +103,7 @@ public final class TouchControlsTest {
         float during=fieldFloat("playerX");
         assertTrue("holding AÇÃO with right movement must keep running right",during>before);
         pointerUpSecond(1,1075,612,0,180,612);
-        assertEquals("shot must use the rightward movement direction",1f,fieldFloat("lastShotDirection"));
+        assertEquals("shot must use the rightward movement direction",1f,fieldFloat("lastShotDirection"),0f);
         assertTrue("releasing AÇÃO must leave joystick movement active",fieldBoolean("rightHeld"));
         SystemClock.sleep(120);
         assertTrue("movement must continue after the shot",fieldFloat("playerX")>during);

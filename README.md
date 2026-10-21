@@ -19,6 +19,7 @@ APK de depuração: `app/build/outputs/apk/debug/app-debug.apk`.
 - [Notas da versão 0.1.2](docs/release-v0.1.2.md)
 - [Notas da versão 0.1.3](docs/release-v0.1.3.md)
 - [Notas da versão 0.2.0](docs/release-v0.2.0.md)
+- [Notas da versão 0.2.1](docs/release-v0.2.1.md)
 - [Notas da versão 0.1.1](docs/release-v0.1.1.md)
 - [Notas da versão 0.1.0](docs/release-v0.1.0.md)
 

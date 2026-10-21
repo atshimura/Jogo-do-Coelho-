@@ -3,6 +3,8 @@ package com.coelhitos;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.LinearGradient;
 import android.graphics.Paint;
@@ -41,6 +43,7 @@ public class MainActivity extends Activity {
 
 final class GameView extends View {
     private final Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Bitmap rabbitIdle, rabbitHop;
     private final Random rng = new Random(44);
     private final AudioEngine audio = new AudioEngine();
     private final ArrayList<Pickup> pickups = new ArrayList<>();
@@ -68,6 +71,9 @@ final class GameView extends View {
 
     GameView(Context context) {
         super(context);
+        rabbitIdle=BitmapFactory.decodeResource(context.getResources(),R.drawable.coelhitos_rabbit_idle);
+        rabbitHop=BitmapFactory.decodeResource(context.getResources(),R.drawable.coelhitos_rabbit_hop);
+        p.setFilterBitmap(true);
         setFocusable(true);
         audio.start();
     }
@@ -83,7 +89,9 @@ final class GameView extends View {
         unit = h / 360f;
         bunnyH = h * .245f;
         // Silhueta lateral: o personagem tem corpo comprido e fica de quatro.
-        bunnyW = bunnyH * 1.12f;
+        float idleAspect=rabbitIdle==null?1.12f:rabbitIdle.getWidth()/(float)rabbitIdle.getHeight();
+        float hopAspect=rabbitHop==null?idleAspect:rabbitHop.getWidth()/(float)rabbitHop.getHeight();
+        bunnyW = bunnyH * Math.max(idleAspect,hopAspect);
         normalSpeed = h * .38f;
         levelLength = normalSpeed * 180f;
         ground = terrainY(playerX);
@@ -420,72 +428,28 @@ final class GameView extends View {
     private void drawRabbit(Canvas c,float x,float y) {
         float s=bunnyH;
         boolean moving=rightHeld||leftHeld;
-        float phase=animTime*(actionHeld?15.5f:10.5f);
-        float gait=(float)Math.sin(phase);
-        // O impulso vem das duas patas traseiras juntas; o corpo dá pulinhos curtos.
-        float hop=onGround&&moving?Math.max(0,gait)*s*.095f:0;
-        float hindCurl=onGround&&moving?Math.max(0,gait)*s*.075f:(!onGround?s*.14f:0);
-        float hindPush=onGround&&moving?Math.max(0,-gait)*s*.045f:0;
-        // As patas traseiras trabalham em par; as dianteiras acompanham juntas,
-        // apoiando o corpo em vez de alternar como uma passada felina.
-        float foreSwing=onGround&&moving?Math.max(0,gait)*s*.018f:0;
+        float gait=(float)Math.sin(animTime*(actionHeld?15.5f:10.5f));
+        boolean airbornePose=!onGround || (moving && gait>0);
+        float hop=onGround&&moving?Math.max(0,gait)*s*.055f:0;
         y-=hop;
+        float spriteW=bunnyW, feetY=state==0?y+s:ground;
         p.setShader(null);p.setStyle(Paint.Style.FILL);p.setAlpha(255);
-        int shadowAlpha=onGround?68:34;
-        p.setColor(Color.argb(shadowAlpha,38,48,48));
-        float feetY=state==0?y+bunnyH:ground;
-        c.drawOval(x+bunnyW*.12f,feetY-s*.035f,x+bunnyW*.97f,feetY+s*.055f,p);
-        c.save();
-        if(!facingRight) { c.scale(-1,1,x+bunnyW/2,y+bunnyH/2); }
-        if(hitCooldown>0 && ((int)(hitCooldown*12)%2==0)) p.setAlpha(110); else p.setAlpha(255);
-        // Cauda e patas traseiras ficam atrás do corpo.
-        p.setColor(Color.rgb(255,248,236));
-        c.drawCircle(x+bunnyW*.10f,y+s*.68f,s*.115f,p);
-        p.setColor(Color.rgb(251,209,139));
-        c.drawOval(x+bunnyW*.13f-hindPush,y+s*.84f-hindCurl,x+bunnyW*.43f-hindPush,y+s*.98f-hindCurl,p);
-        c.drawOval(x+bunnyW*.31f-hindPush,y+s*.86f-hindCurl,x+bunnyW*.55f-hindPush,y+s*.98f-hindCurl,p);
-        // Corpo baixo e alongado, com uma mancha clara no ventre.
-        p.setShader(new LinearGradient(x+bunnyW*.22f,y+s*.42f,x+bunnyW*.56f,y+s*.9f,Color.rgb(255,255,250),Color.rgb(223,203,180),Shader.TileMode.CLAMP));
-        c.drawOval(x+bunnyW*.15f,y+s*.40f,x+bunnyW*.73f,y+s*.82f,p);
-        p.setShader(null);
-        p.setColor(Color.argb(105,255,255,255));c.drawOval(x+bunnyW*.25f,y+s*.44f,x+bunnyW*.60f,y+s*.51f,p);
-        p.setColor(Color.rgb(255,239,222));
-        c.drawOval(x+bunnyW*.37f,y+s*.61f,x+bunnyW*.69f,y+s*.78f,p);
-        // Patas da frente apoiam e acompanham o salto, sem passada de gato.
-        p.setColor(Color.rgb(244,228,210));
-        c.drawOval(x+bunnyW*.68f+foreSwing,y+s*.65f,x+bunnyW*.79f+foreSwing,y+s*.89f,p);
-        c.drawOval(x+bunnyW*.80f+foreSwing,y+s*.67f,x+bunnyW*.90f+foreSwing,y+s*.90f,p);
-        p.setColor(Color.rgb(251,209,139));
-        c.drawOval(x+bunnyW*.64f+foreSwing,y+s*.85f,x+bunnyW*.84f+foreSwing,y+s*.98f,p);
-        c.drawOval(x+bunnyW*.77f+foreSwing,y+s*.86f,x+bunnyW*.96f+foreSwing,y+s*.98f,p);
-        // Orelhas longas com movimento sutil durante os saltos.
-        float earTilt=moving?gait*4f:0;
-        c.save(); c.rotate(earTilt,x+bunnyW*.68f,y+s*.40f);
-        p.setColor(Color.rgb(255,248,236));
-        c.drawOval(x+bunnyW*.55f,y+s*.05f,x+bunnyW*.67f,y+s*.45f,p);
-        c.drawOval(x+bunnyW*.66f,y+s*.10f,x+bunnyW*.77f,y+s*.45f,p);
-        p.setColor(Color.rgb(246,174,178));
-        c.drawOval(x+bunnyW*.58f,y+s*.10f,x+bunnyW*.64f,y+s*.40f,p);
-        c.drawOval(x+bunnyW*.69f,y+s*.14f,x+bunnyW*.74f,y+s*.39f,p);
-        c.restore();
-        // Cabeça, focinho e traços do rosto em perfil.
-        p.setShader(new LinearGradient(x+bunnyW*.68f,y+s*.22f,x+bunnyW*.93f,y+s*.68f,Color.rgb(255,255,252),Color.rgb(224,204,182),Shader.TileMode.CLAMP));
-        c.drawCircle(x+bunnyW*.76f,y+s*.43f,s*.24f,p);
-        c.drawOval(x+bunnyW*.84f,y+s*.51f,x+bunnyW*1.02f,y+s*.64f,p);
-        p.setShader(null);
-        p.setColor(Color.rgb(74,70,81)); c.drawCircle(x+bunnyW*.85f,y+s*.39f,s*.037f,p);
-        p.setColor(Color.WHITE); c.drawCircle(x+bunnyW*.86f,y+s*.38f,s*.012f,p);
-        p.setColor(Color.rgb(245,143,156)); c.drawCircle(x+bunnyW*1.01f,y+s*.565f,s*.035f,p);
-        p.setColor(Color.rgb(245,161,165)); c.drawOval(x+bunnyW*.77f,y+s*.48f,x+bunnyW*.84f,y+s*.54f,p);
-        p.setColor(Color.rgb(125,106,101));
-        c.drawLine(x+bunnyW*.98f,y+s*.61f,x+bunnyW*.94f,y+s*.66f,p);
-        c.drawLine(x+bunnyW*.94f,y+s*.66f,x+bunnyW*.90f,y+s*.64f,p);
-        p.setStrokeWidth(1.2f*unit);
-        c.drawLine(x+bunnyW*.95f,y+s*.58f,x+bunnyW*1.08f,y+s*.55f,p);
-        c.drawLine(x+bunnyW*.95f,y+s*.61f,x+bunnyW*1.09f,y+s*.62f,p);
-        p.setStrokeWidth(1f);
-        p.setAlpha(255); c.restore();
-        if(power==LIGHTNING) { p.setColor(Color.rgb(255,236,72)); p.setStyle(Paint.Style.STROKE); p.setStrokeWidth(3*unit); c.drawCircle(x+bunnyW*.5f,y+s*.55f,s*.55f,p); p.setStyle(Paint.Style.FILL); }
+        p.setColor(Color.argb(onGround?62:32,38,48,48));
+        c.drawOval(x+spriteW*.14f,feetY-s*.025f,x+spriteW*.88f,feetY+s*.035f,p);
+        if(power==LIGHTNING) {
+            p.setColor(Color.rgb(255,236,72));p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(3*unit);
+            c.drawCircle(x+spriteW*.52f,y+s*.53f,s*.54f,p);p.setStyle(Paint.Style.FILL);
+        }
+        Bitmap sprite=airbornePose?rabbitHop:rabbitIdle;
+        if(sprite!=null) {
+            float dw=spriteW, dh=s;
+            RectF dst=new RectF(x,y,x+dw,y+dh);
+            if(hitCooldown>0 && ((int)(hitCooldown*12)%2==0))p.setAlpha(115);else p.setAlpha(255);
+            c.save();
+            if(!facingRight)c.scale(-1,1,x+dw*.5f,y+dh*.5f);
+            c.drawBitmap(sprite,null,dst,p);
+            c.restore();p.setAlpha(255);
+        }
     }
     private void drawShot(Canvas c,Shot s) {
         float x=s.x-camera,y=s.y;

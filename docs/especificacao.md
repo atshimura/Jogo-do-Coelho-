@@ -1,6 +1,6 @@
 # Coelhitos — especificação funcional
 
-**Versão:** 1.3 — 20/10/2026
+**Versão:** 1.4 — 21/10/2026
 **Escopo inicial:** protótipo Android com a primeira fase completa.
 
 ## Conceito
@@ -66,6 +66,7 @@ O jogo terá trilha musical original em loop e efeitos originais para caminhada,
 - A interface usa painéis translúcidos, indicadores desenhados no próprio jogo, hierarquia tipográfica clara e controles circulares com símbolos e rótulos legíveis.
 - O aplicativo inclui ícone próprio nos formatos adaptativo e legado do Android.
 - O projétil de Fogo tem corpo laranja, núcleo amarelo, halo e rastro; a Pena tem haste e barbas desenhadas para que os dois poderes sejam fáceis de distinguir.
+- O mascote em jogo deve manter a mesma identidade visual do coelho do ícone: pelagem branca fofa, olhos castanhos grandes, orelhas rosadas e cenoura. As poses de repouso e salto preservam o perfil lateral e o movimento em pares das patas traseiras.
 
 ## Backlog após a primeira fase
 

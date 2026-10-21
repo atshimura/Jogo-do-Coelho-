@@ -16,6 +16,7 @@ Este arquivo acompanha a implementação em etapas, conforme solicitado. Cada et
 | 8 | Instalar e exercitar o jogo em emulador Android no GitHub Actions | Concluída |
 | 9 | Corrigir disparo/pulo, dar relevo aos elementos e sincronizar áudio na perda de vida | Concluída (0.1.3) |
 | 10 | Refinar identidade visual, animação do coelho, projéteis, terreno e ícone Android | Concluída (0.2.0) |
+| 11 | Unificar o mascote do jogo com o coelho do ícone, mantendo poses de repouso e salto | Em validação (0.2.1) |
 
 ## Registro
 
@@ -104,4 +105,11 @@ Este arquivo acompanha a implementação em etapas, conforme solicitado. Cada et
 - APK debug `Coelhitos-v0.2.0-debug.apk`, `versionCode 5`, `versionName 0.2.0`. SHA-256: `33dc6cec9cf5149323b130c52ec17d2c0fc2361de5a9be42931b91b9823f358d`.
 - Artefato APK `Coelhitos-debug-apk` (`12308003118`, retenção de 30 dias), anexado à [execução #22](https://github.com/atshimura/Jogo-do-Coelho-/actions/runs/39516173225).
 - A checagem continua limitada a um trecho curto automatizado; o tempo de três minutos e a ergonomia em aparelho físico precisam de avaliação manual.
+
+### 21/10/2026 — etapa 11: mascote igual ao ícone (0.2.1)
+
+- Criadas poses transparentes de repouso e salto a partir do coelho do ícone, preservando pelagem branca, olhos castanhos, orelhas rosadas e cenoura.
+- Substituído o desenho vetorial simples por sprites em alta definição; a animação alterna entre apoio e salto, com as patas traseiras juntas.
+- O personagem continua lateral, vira para a esquerda/direita e mantém efeitos de invulnerabilidade, aura do Raio e sombra de contato.
+- Atualizada a versão para `0.2.1` (`versionCode 6`). Build e validação em emulador pendentes.
 

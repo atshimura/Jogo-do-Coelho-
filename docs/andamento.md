@@ -17,7 +17,7 @@ Este arquivo acompanha a implementação em etapas, conforme solicitado. Cada et
 | 9 | Corrigir disparo/pulo, dar relevo aos elementos e sincronizar áudio na perda de vida | Concluída (0.1.3) |
 | 10 | Refinar identidade visual, animação do coelho, projéteis, terreno e ícone Android | Concluída (0.2.0) |
 | 11 | Unificar o mascote do jogo com o coelho do ícone, mantendo poses de repouso e salto | Concluída (0.2.1) |
-| 12 | Corrigir multitoque e integrar arte aprovada dos inimigos/obstáculos | Em validação (0.3.0) |
+| 12 | Corrigir multitoque e integrar arte aprovada dos inimigos/obstáculos | Concluída (0.3.0) |
 
 ## Registro
 
@@ -132,4 +132,8 @@ Este arquivo acompanha a implementação em etapas, conforme solicitado. Cada et
 - Corrigido o roteamento de ponteiros simultâneos para joystick, AÇÃO e PULO; o salto captura a direção ativa e o tiro não interrompe nem inverte o movimento.
 - Integradas as artes aprovadas dos inimigos azul/roxo, espinhos e fogo. O fosso não aparece na primeira fase, conforme a especificação; o sprite permanece como recurso para fases futuras.
 - Criados seis testes de instrumentação no Android Emulator para eventos de dois dedos, corrida, salto neutro/direcional e disparo mantendo movimento à esquerda e à direita.
-- Build e execução no emulador em andamento.
+- Build Gradle e seis testes instrumentados passaram no GitHub Actions #34, em emulador Android API 35. Os testes confirmam pulo direcional para os dois lados, pulo vertical sem direção, AÇÃO durante deslocamento para esquerda/direita e corrida ao manter AÇÃO pressionada.
+- A execução registrou disparos para esquerda/direita com movimento ativo, saltos para frente/trás e pulo neutro; o jogo permaneceu ativo após o trecho automatizado e o Logcat não apresentou exceções fatais.
+- As capturas de tela entregues pelo emulador headless vieram pretas, portanto não são evidência de avaliação visual. A validação desta versão confirma build, entrada multitoque automatizada e estabilidade no trecho testado.
+- APK `Coelhitos-v0.3.0-debug.apk`, `versionCode 7`, `versionName 0.3.0`; SHA-256: `3321bd433faffb1f4016be8faab9ca43fb97ef79e3cb82bafd65a047c5513a92`.
+- Artefato APK `Coelhitos-debug-apk` (`12370400105`, retenção de 30 dias) e evidência (`12369830437`, retenção de 14 dias) na [execução #34](https://github.com/atshimura/Jogo-do-Coelho-/actions/runs/39649842891).

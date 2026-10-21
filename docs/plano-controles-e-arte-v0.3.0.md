@@ -1,6 +1,6 @@
 # Plano — controles multitoque e identidade visual (v0.3.0)
 
-**Estado:** implementado na versão 0.3.0, aprovada a arte conceitual. APK e validação em emulador em andamento.
+**Estado:** implementado e validado na versão 0.3.0; arte aprovada integrada. APK gerado.
 
 ## 1. Diagnóstico dos controles
 
@@ -49,4 +49,6 @@ O código atual contém fossos/buracos, e a prancha os inclui para retratar o co
 2. Corrigido o mapeamento de coordenadas e IDs em `ACTION_POINTER_DOWN`; os controles mantêm IDs e estados independentes.
 3. Criados seis testes de emulador com eventos multitoque sintéticos para saltos direcionais, salto neutro, tiro mantendo movimento para os dois sentidos e corrida com AÇÃO pressionada.
 4. Integrados sprites dos inimigos, espinhos e fogo; fosso reservado a fases futuras. Comportamentos e colisões foram mantidos.
-5. Build, teste em emulador e checksum serão registrados após a conclusão do CI.
+5. Build e seis testes passaram na [execução #34](https://github.com/atshimura/Jogo-do-Coelho-/actions/runs/39649842891), em emulador Android API 35. O jogo permaneceu ativo e o Logcat não registrou exceções fatais.
+6. SHA-256 do APK: `3321bd433faffb1f4016be8faab9ca43fb97ef79e3cb82bafd65a047c5513a92`.
+7. As capturas do emulador headless vieram pretas, então a avaliação visual fica pendente de aparelho com renderização visível; isso não altera o resultado dos testes de controle e estabilidade.

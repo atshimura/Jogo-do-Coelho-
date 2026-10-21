@@ -16,4 +16,10 @@ O salto direcional ganhou mais impulso vertical e alcance horizontal. Acionado n
 
 ## Validação
 
-Nove testes instrumentados verificam os percentuais por todos os 100 resultados possíveis, duração dos poderes, impulso do Supersalto, evasão de espinhos/fogo/inimigos e os controles de toque da versão anterior. Os resultados, o APK e o SHA-256 serão registrados quando o CI terminar.
+Nove testes instrumentados passaram no GitHub Actions #36, em emulador Android API 35. Eles verificam os percentuais nos 100 resultados possíveis, duração dos poderes, impulso do Supersalto, evasão cronometrada de espinhos/fogo/inimigos e os controles de toque da versão anterior. O Logcat não apresentou `FATAL EXCEPTION` nem `ConcurrentModificationException`.
+
+- APK debug: `Coelhitos-v0.4.0-debug.apk` (`versionCode 8`, `versionName 0.4.0`).
+- SHA-256: `f7b8613cd527558c3561e000c683f9ac028fc21c8d55eb471105e1d43d58f012`.
+- Artefato APK `Coelhitos-debug-apk` (`12388728282`, retenção de 30 dias); evidência `Coelhitos-emulator-evidence` (`12388703335`, retenção de 14 dias).
+- Execução: [GitHub Actions #36](https://github.com/atshimura/Jogo-do-Coelho-/actions/runs/39691425834).
+- O emulador não substitui a avaliação de duração completa da fase, ergonomia e visual em aparelho físico.

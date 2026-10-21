@@ -1,6 +1,6 @@
 # Coelhitos — especificação funcional
 
-**Versão:** 1.4 — 21/10/2026
+**Versão:** 1.5 — 21/10/2026
 **Escopo inicial:** protótipo Android com a primeira fase completa.
 
 ## Conceito
@@ -35,8 +35,10 @@ Jogo de plataforma 2D lateral para celular Android, sempre em orientação horiz
 - Tocar e soltar o botão de ação dispara, inclusive enquanto o joystick continua apontado para a frente. O toque curto permanece responsivo durante o movimento; manter pressionado com direção aciona a corrida. Sem poder, o disparo consome uma cenoura.
 - O botão de pulo dispara um salto uma vez por toque, inclusive com o joystick ativo. Direita + pulo salta para a direita; esquerda + pulo salta para a esquerda; sem direção horizontal, o salto sobe no mesmo lugar. Um toque pouco antes de aterrissar fica brevemente em buffer para não se perder.
 - Joystick, AÇÃO e PULO podem ser operados ao mesmo tempo em dedos separados; soltar um botão não cancela nem troca o controle dos outros dedos.
-- Com Pena ou Fogo, o disparo usa o poder equipado. Espinho cria um espinho que cai do céu um pouco à frente do coelho.
-- Raio ativa automaticamente ao ser encontrado: por 5 segundos, o coelho corre mais rápido e atropela inimigos à frente.
+- Com Pena ou Fogo, o disparo usa o poder equipado. Espinho faz crescer um espinho no chão, um pouco à frente do coelho. Supersalto é passivo e, enquanto ativo, AÇÃO continua disparando cenouras coletadas.
+- Raio ativa automaticamente ao ser encontrado: por 8 segundos, o coelho corre mais rápido e atropela inimigos à frente.
+- Supersalto aumenta a altura e a distância do pulo por 20 segundos.
+- Com a direcional para a esquerda ou direita, o botão de pulo dá um salto frontal ampliado o suficiente para superar espinhos, fogo e inimigos quando acionado no momento certo. A colisão acontece ao nível do chão; o salto evita o dano enquanto o coelho passa acima do perigo.
 
 ## Poderes
 
@@ -44,10 +46,11 @@ Um único poder pode estar equipado. Pegar outro substitui o anterior.
 
 | Poder | Chance | Efeito |
 |---|---:|---|
-| Espinho | 30% | Ao disparar, faz cair um espinho do céu um pouco à frente do coelho. |
-| Raio | 15% | Por 5 segundos, aumenta a velocidade e permite atropelar inimigos à frente. |
-| Pena | 30% | Dispara uma rajada de penas. |
-| Fogo | 25% | Dispara bolas de fogo que explodem. |
+| Espinho | 25% | Faz crescer um espinho no chão à frente do coelho ao disparar. |
+| Fogo | 20% | Dispara bolas de fogo que explodem. |
+| Pena | 25% | Dispara uma rajada de penas. |
+| Raio | 13% | Por 8 segundos, aumenta a velocidade e permite atropelar inimigos à frente. |
+| Supersalto | 17% | Por 20 segundos, aumenta a altura e a distância dos saltos. |
 
 Se o coelho for atingido por um inimigo ou obstáculo enquanto estiver com um poder, perde o poder e não perde coração. Sem poder, uma colisão tira um coração. Após ser atingido, há breve intervalo de invulnerabilidade para evitar dano repetido instantâneo.
 

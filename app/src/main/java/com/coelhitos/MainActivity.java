@@ -68,7 +68,7 @@ final class GameView extends View {
     private String notice = "";
     private float noticeTime;
 
-    private static final int NONE=0, THORN=1, LIGHTNING=2, FEATHER=3, FIRE=4;
+    private static final int NONE=0, THORN=1, LIGHTNING=2, FEATHER=3, FIRE=4, SUPER_JUMP=5;
 
     GameView(Context context) {
         super(context);
@@ -158,14 +158,15 @@ final class GameView extends View {
 
     private void update(float dt) {
         if (hitCooldown>0) hitCooldown-=dt;
-        if (power==LIGHTNING) {
+        if (power==LIGHTNING || power==SUPER_JUMP) {
             powerTime-=dt;
-            if(powerTime<=0) { power=NONE; say("O Raio acabou"); }
+            if(powerTime<=0) { boolean wasLightning=power==LIGHTNING; power=NONE; powerTime=0; say(wasLightning?"O Raio acabou":"O Supersalto acabou"); }
         }
         float dir = (rightHeld?1:0) - (leftHeld?1:0);
         if (Math.abs(dir)>.1f) facingRight=dir>0;
         boolean running = actionHeld && Math.abs(dir)>.1f;
         float speed = normalSpeed*(running?1.7f:1f)*(power==LIGHTNING?1.55f:1f);
+        if(!onGround && jumpForwardSpeed!=0) speed=Math.max(speed,Math.abs(jumpForwardSpeed));
         if (Math.abs(dir)>.1f) playerX += dir*speed*dt;
         else if (!onGround && jumpForwardSpeed!=0) playerX += jumpForwardSpeed*dt;
         if(Math.abs(dir)>.1f && onGround) {
@@ -207,7 +208,7 @@ final class GameView extends View {
             if(Math.abs(q.x-(playerX+bunnyW*.45f))<bunnyW*.75f && Math.abs(py-(playerY+bunnyH*.45f))<bunnyH) {
                 if(q.type==0) { carrots++; audio.effect(0); say("Cenoura +1"); }
                 else if(q.type==1) { hearts=Math.min(3,hearts+1); audio.effect(1); say("Coração!"); }
-                else { power=randomPower(); collectedChests++; audio.effect(2); say(powerName(power)); if(power==LIGHTNING) powerTime=5; }
+                else { power=randomPower(); collectedChests++; audio.effect(2); say(powerName(power)); powerTime=powerDuration(power); }
                 pi.remove();
             }
         }
@@ -230,7 +231,7 @@ final class GameView extends View {
                 } else if(s.kind==2) audio.effect(4); else audio.effect(3);
                 break;
             }
-            if(hit || s.age>2.5f || s.x<camera-80*unit || s.x>camera+w+120*unit) si.remove();
+            if(hit || s.age>(s.kind==4 ? .65f : 2.5f) || s.x<camera-80*unit || s.x>camera+w+120*unit) si.remove();
         }
         Iterator<Burst> bi=bursts.iterator();
         while(bi.hasNext()) { Burst b=bi.next(); b.age+=dt; if(b.age>.32f) bi.remove(); }
@@ -238,10 +239,17 @@ final class GameView extends View {
     }
 
     private int randomPower() {
-        int n=rng.nextInt(100);
-        if(n<30)return THORN; if(n<45)return LIGHTNING; if(n<75)return FEATHER; return FIRE;
+        return powerForRoll(rng.nextInt(100));
     }
-    private String powerName(int pwr) { return pwr==THORN?"Poder Espinho!":pwr==LIGHTNING?"Poder Raio!":pwr==FEATHER?"Poder Pena!":"Poder Fogo!"; }
+    private int powerForRoll(int n) {
+        if(n<25)return THORN;
+        if(n<45)return FIRE;
+        if(n<70)return FEATHER;
+        if(n<83)return LIGHTNING;
+        return SUPER_JUMP;
+    }
+    private float powerDuration(int pwr) { return pwr==LIGHTNING?8f:pwr==SUPER_JUMP?20f:0f; }
+    private String powerName(int pwr) { return pwr==THORN?"Poder Espinho!":pwr==LIGHTNING?"Poder Raio!":pwr==FEATHER?"Poder Pena!":pwr==SUPER_JUMP?"Supersalto!":"Poder Fogo!"; }
     private float horizontalDirection() { return rightHeld&&!leftHeld?1:leftHeld&&!rightHeld?-1:0; }
     private void requestJump(String source) {
         queuedJumpDirection=horizontalDirection();
@@ -256,10 +264,12 @@ final class GameView extends View {
         // botão for apertado pouco antes de tocar o chão.
         jumpBufferTime=0;
         if(dir!=0) facingRight=dir>0;
-        jumpForwardSpeed=normalSpeed*.82f*dir;
+        float jumpForwardMultiplier=power==SUPER_JUMP?1.85f:1.55f;
+        jumpForwardSpeed=normalSpeed*jumpForwardMultiplier*dir;
         Log.d("CoelhitosInput","jump dir="+(int)dir+" source="+source);
-        vy=-h*1.47f; onGround=false; audio.effect(6);
+        vy=-jumpImpulse(dir); onGround=false; audio.effect(6);
     }
+    private float jumpImpulse(float dir) { return power==SUPER_JUMP?h*2f:(dir==0?h*1.47f:h*1.8f); }
     private void say(String s) { notice=s; noticeTime=1.25f; }
     private void hurt() {
         if(hitCooldown>0 || state!=1)return;
@@ -281,7 +291,7 @@ final class GameView extends View {
         float sx=playerX+(direction>0?bunnyW*.94f:-bunnyW*.04f), sy=playerY+bunnyH*.56f, v=650*unit*direction;
         if(power==THORN) {
             float targetX=playerX+direction*bunnyW*1.8f;
-            shots.add(new Shot(targetX, terrainY(targetX)-260*unit, 0, 550*unit, 1, 4, 0));
+            shots.add(new Shot(targetX, terrainY(targetX)-52*unit, 0, 0, 1, 4, 0));
             audio.effect(10);
         } else if(power==FEATHER) {
             for(int i=-1;i<=1;i++) shots.add(new Shot(sx,sy+i*9*unit,v,-i*80*unit,1,2,0));
@@ -441,6 +451,9 @@ final class GameView extends View {
         if(power==LIGHTNING) {
             p.setColor(Color.rgb(255,236,72));p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(3*unit);
             c.drawCircle(x+spriteW*.52f,y+s*.53f,s*.54f,p);p.setStyle(Paint.Style.FILL);
+        } else if(power==SUPER_JUMP) {
+            p.setColor(Color.argb(145,169,113,233));p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(3*unit);
+            c.drawCircle(x+spriteW*.52f,y+s*.53f,s*.54f,p);p.setStyle(Paint.Style.FILL);
         }
         Bitmap sprite=airbornePose?rabbitHop:rabbitIdle;
         if(sprite!=null) {
@@ -475,7 +488,10 @@ final class GameView extends View {
             p.setColor(Color.rgb(255,237,113));c.drawOval(x-3*unit,y-5*unit,x+9*unit,y+5*unit,p);
             p.setColor(Color.argb(185,255,116,29));Path tail=new Path();tail.moveTo(x-8*unit,y);tail.quadTo(x-18*unit,y-10*unit,x-25*unit,y);tail.quadTo(x-16*unit,y+7*unit,x-8*unit,y);tail.close();c.drawPath(tail,p);
         }
-        else { p.setColor(Color.rgb(221,239,231));Path t=new Path();t.moveTo(x,y-13*unit);t.lineTo(x+7*unit,y);t.lineTo(x,y+13*unit);t.lineTo(x-7*unit,y);t.close();c.drawPath(t,p); }
+        else if(s.kind==4) {
+            float grow=Math.min(1f,s.age/.18f);
+            drawSpriteAtBottom(c,spikeSprite,x,terrainY(s.x)+2*unit,60*unit*grow,48*unit*grow);
+        } else { p.setColor(Color.rgb(221,239,231));Path t=new Path();t.moveTo(x,y-13*unit);t.lineTo(x+7*unit,y);t.lineTo(x,y+13*unit);t.lineTo(x-7*unit,y);t.close();c.drawPath(t,p); }
     }
     private void drawBurst(Canvas c,Burst b) {
         float x=b.x-camera, y=b.y, radius=(12+b.age*190)*unit;
@@ -539,9 +555,9 @@ final class GameView extends View {
         p.setColor(Color.rgb(96,112,104));p.setTextSize(8*unit);c.drawText("PORTAL",w*.5f,49*unit,p);
         if(power!=NONE) {
             p.setColor(Color.argb(222,255,255,255));c.drawRoundRect(w*.79f,11*unit,w*.98f,55*unit,17*unit,17*unit,p);
-            int pc=power==FIRE?Color.rgb(236,111,52):power==FEATHER?Color.rgb(78,146,181):power==LIGHTNING?Color.rgb(175,132,34):Color.rgb(101,138,104);
+            int pc=power==FIRE?Color.rgb(236,111,52):power==FEATHER?Color.rgb(78,146,181):power==LIGHTNING?Color.rgb(175,132,34):power==SUPER_JUMP?Color.rgb(139,92,192):Color.rgb(101,138,104);
             p.setColor(pc);p.setTextAlign(Paint.Align.CENTER);p.setTextSize(11*unit);p.setTypeface(android.graphics.Typeface.create("sans-serif-rounded",1));c.drawText(powerName(power).replace("Poder ","").replace("!",""),w*.885f,38*unit,p);
-            if(power==LIGHTNING){p.setTextSize(8*unit);c.drawText(String.format(java.util.Locale.US,"%.1fs",Math.max(0,powerTime)),w*.885f,49*unit,p);}
+            if(power==LIGHTNING||power==SUPER_JUMP){p.setTextSize(8*unit);c.drawText(String.format(java.util.Locale.US,"%.1fs",Math.max(0,powerTime)),w*.885f,49*unit,p);}
         }
         if(state==2) { p.setColor(Color.argb(176,34,48,63)); c.drawRect(0,0,w,h,p);p.setColor(Color.WHITE);p.setTypeface(android.graphics.Typeface.create("sans-serif-rounded",1));p.setTextSize(31*unit);c.drawText("FASE CONCLUÍDA!",w*.5f,h*.39f,p);p.setTextSize(16*unit);c.drawText("O portal para a próxima aventura está aberto",w*.5f,h*.5f,p);p.setTextSize(13*unit);c.drawText("Toque para jogar novamente",w*.5f,h*.61f,p); }
     }

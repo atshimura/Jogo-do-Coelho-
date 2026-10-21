@@ -57,7 +57,7 @@ jobs:
             adb install -r app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
             adb logcat -c
             adb shell am instrument -w -r com.coelhitos.test/androidx.test.runner.AndroidJUnitRunner > emulator-evidence/multitouch-tests.txt
-            grep -q "OK (6 tests)" emulator-evidence/multitouch-tests.txt
+            grep -q "OK (9 tests)" emulator-evidence/multitouch-tests.txt
             adb shell am force-stop com.coelhitos
             adb shell am start -W -n com.coelhitos/.MainActivity
             sleep 3

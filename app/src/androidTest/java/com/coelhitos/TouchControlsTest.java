@@ -9,6 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
@@ -125,6 +126,75 @@ public final class TouchControlsTest {
         pointerUp(0,180,612);
     }
 
+    @Test
+    public void testPowerChancesAndDurations() throws Exception {
+        Method roll=GameView.class.getDeclaredMethod("powerForRoll",int.class);roll.setAccessible(true);
+        int[] counts=new int[6];
+        for(int i=0;i<100;i++)counts[(Integer)roll.invoke(game,i)]++;
+        assertArrayEquals(new int[]{0,25,13,25,20,17},counts);
+        Method duration=GameView.class.getDeclaredMethod("powerDuration",int.class);duration.setAccessible(true);
+        assertEquals(8f,(Float)duration.invoke(game,2),0f);
+        assertEquals(20f,(Float)duration.invoke(game,5),0f);
+        assertEquals(0f,(Float)duration.invoke(game,1),0f);
+        setField("power",1);
+        Method shoot=GameView.class.getDeclaredMethod("shoot");shoot.setAccessible(true);shoot.invoke(game);
+        Shot thorn=(Shot)((ArrayList<?>)field("shots")).get(0);
+        assertEquals("Espinho must grow from the ground rather than fall",4,thorn.kind);
+        assertEquals("growing Espinho stays at ground height",0f,thorn.vy,0f);
+    }
+
+    @Test
+    public void testSupersaltoMakesDirectionalJumpHigherAndLonger() throws Exception {
+        setField("power",5);
+        setField("powerTime",20f);
+        pointerDown(0,180,612);
+        pointerDownSecond(1,1203,612,0,180,612);
+        assertTrue("Supersalto must increase forward travel",fieldFloat("jumpForwardSpeed")>fieldFloat("normalSpeed")*1.8f);
+        Method impulse=GameView.class.getDeclaredMethod("jumpImpulse",float.class);impulse.setAccessible(true);
+        assertEquals("Supersalto must increase jump height",game.getHeight()*2f,(Float)impulse.invoke(game,1f),.1f);
+        pointerUpSecond(1,1203,612,0,180,612);
+        pointerUp(0,180,612);
+        SystemClock.sleep(220);
+        assertTrue("Supersalto must remain active during its duration",fieldFloat("powerTime")<20f&&fieldInt("power")==5);
+    }
+
+    @Test
+    public void testDirectionalJumpClearsSpikesFireAndBothEnemies() throws Exception {
+        clearAndJumpOver(false,0,0);
+        clearAndJumpOver(false,1,0);
+        clearAndJumpOver(false,2,0);
+        clearAndJumpOver(true,0,1);
+        clearAndJumpOver(true,0,3);
+    }
+
+    private void clearAndJumpOver(boolean enemy,int type,int hp) throws Exception {
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(()->{
+            try {
+                ((ArrayList<?>)field("hazards")).clear();
+                ((ArrayList<?>)field("enemies")).clear();
+                ((ArrayList<?>)field("pickups")).clear();
+                ((ArrayList<?>)field("shots")).clear();
+                float target=fieldFloat("levelLength")*.31f;
+                float size=enemy?(hp>1?136f:98f):164f;
+                float radius=enemy?fieldFloat("bunnyW")*.65f:size*.5f+fieldFloat("bunnyW")*.35f;
+                float speed=fieldFloat("normalSpeed")*1.55f;
+                setField("playerX",target-radius-speed*.18f-(enemy?0:fieldFloat("bunnyW")*.5f));
+                setField("onGround",true);setField("vy",0f);setField("jumpForwardSpeed",0f);
+                setField("hitCooldown",0f);setField("hearts",3);setField("power",0);setField("powerTime",0f);
+                if(enemy)((ArrayList<Enemy>)field("enemies")).add(new Enemy(target,hp,hp>1,0f,size));
+                else ((ArrayList<Hazard>)field("hazards")).add(new Hazard(target,type,size));
+            } catch(Exception e) { throw new RuntimeException(e); }
+        });
+        SystemClock.sleep(60);
+        pointerDown(0,180,612);
+        pointerDownSecond(1,1203,612,0,180,612);
+        SystemClock.sleep(1000);
+        int hearts=fieldInt("hearts");
+        pointerUpSecond(1,1203,612,0,180,612);
+        pointerUp(0,180,612);
+        assertEquals("timed forward jump must clear "+(enemy?"enemy":"hazard"),3,hearts);
+    }
+
     private void tap(float x,float y) {
         pointerDown(0,x,y);
         pointerUp(0,x,y);
@@ -160,6 +230,7 @@ public final class TouchControlsTest {
         Field f=GameView.class.getDeclaredField(name);f.setAccessible(true);return f.get(game);
     }
     private float fieldFloat(String name) throws Exception { return ((Number)field(name)).floatValue(); }
+    private int fieldInt(String name) throws Exception { return ((Number)field(name)).intValue(); }
     private boolean fieldBoolean(String name) throws Exception { return (Boolean)field(name); }
     private void setField(String name,Object value) throws Exception {
         Field f=GameView.class.getDeclaredField(name);f.setAccessible(true);f.set(game,value);

@@ -17,6 +17,7 @@ Este arquivo acompanha a implementação em etapas, conforme solicitado. Cada et
 | 9 | Corrigir disparo/pulo, dar relevo aos elementos e sincronizar áudio na perda de vida | Concluída (0.1.3) |
 | 10 | Refinar identidade visual, animação do coelho, projéteis, terreno e ícone Android | Concluída (0.2.0) |
 | 11 | Unificar o mascote do jogo com o coelho do ícone, mantendo poses de repouso e salto | Concluída (0.2.1) |
+| 12 | Diagnosticar multitoque e apresentar arte dos inimigos/obstáculos | Planejada; aguardando aprovação visual (v0.3.0) |
 
 ## Registro
 
@@ -118,3 +119,11 @@ Este arquivo acompanha a implementação em etapas, conforme solicitado. Cada et
 - Artefato APK `Coelhitos-debug-apk` (`12342629714`, retenção de 30 dias), anexado à [execução #24](https://github.com/atshimura/Jogo-do-Coelho-/actions/runs/39593141098).
 - Limite: o teste automatizado cobre um trecho curto; a duração integral da fase e a jogabilidade em aparelho físico ainda precisam de avaliação manual.
 
+
+### 21/10/2026 — planejamento v0.3.0 (sem implementação)
+
+- Diagnosticada a falha de associação de ponteiros no multitoque: `getX()`/`getY()` usam o ponteiro padrão em `ACTION_POINTER_DOWN`, mas o evento associa o identificador do ponteiro novo.
+- Registrado plano de correção e critérios de teste para salto direcional e ação durante movimento em `docs/plano-controles-e-arte-v0.3.0.md`.
+- Criada uma prancha de conceitos para os dois inimigos (azul pequeno e roxo grande) e os três obstáculos do código atual (espinhos, fosso e fogo). A integração espera a aprovação visual.
+- A prancha inclui o fosso para representar o código atual; o plano preserva a decisão anterior de não incluir buracos na fase 1.
+- Nenhum código, arte do jogo ou APK foi alterado nesta etapa.

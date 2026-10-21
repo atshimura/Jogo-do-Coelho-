@@ -14,4 +14,8 @@
 
 ## Verificação
 
-Compilação e inspeção do resultado no emulador pendentes.
+Compilação Gradle e teste em emulador Android API 35 concluídos com sucesso na [execução #24](https://github.com/atshimura/Jogo-do-Coelho-/actions/runs/39593141098). Os comandos de movimento, os três tipos de salto e o disparo durante movimento foram exercitados; o app permaneceu aberto e o Logcat não registrou `FATAL EXCEPTION` nem `ConcurrentModificationException`. A captura final confirma a identidade do mascote na fase.
+
+APK debug: `Coelhitos-v0.2.1-debug.apk`. SHA-256: `2b19058a62821209db73244c7bb39b24df050c74c2c7df68ecf1cea15ec43c5c`.
+
+O teste automatizado percorreu um trecho curto; a fase completa e o uso em aparelho físico ainda precisam de avaliação manual.

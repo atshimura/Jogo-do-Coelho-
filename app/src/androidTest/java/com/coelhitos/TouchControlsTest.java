@@ -3,7 +3,6 @@ package com.coelhitos;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.SystemClock;
-import android.test.InstrumentationTestCase;
 import android.view.InputDevice;
 import android.view.MotionEvent;
 import android.view.View;
@@ -11,17 +10,24 @@ import android.view.ViewGroup;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+import androidx.test.platform.app.InstrumentationRegistry;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import static org.junit.Assert.*;
 
-public final class TouchControlsTest extends InstrumentationTestCase {
+@RunWith(AndroidJUnit4.class)
+public final class TouchControlsTest {
     private Activity activity;
     private GameView game;
     private long gestureDownTime;
 
-    @Override protected void setUp() throws Exception {
-        super.setUp();
-        Intent intent = new Intent(getInstrumentation().getTargetContext(), MainActivity.class);
+    @Before public void setUp() throws Exception {
+        Intent intent = new Intent(InstrumentationRegistry.getInstrumentation().getTargetContext(), MainActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        activity = getInstrumentation().startActivitySync(intent);
+        activity = InstrumentationRegistry.getInstrumentation().startActivitySync(intent);
         for (int i=0;i<60;i++) {
             ViewGroup content = (ViewGroup)activity.findViewById(android.R.id.content);
             if (content != null && content.getChildCount() > 0 && content.getChildAt(0).getWidth() > 0) {
@@ -34,12 +40,12 @@ public final class TouchControlsTest extends InstrumentationTestCase {
         tap(640,360); // start the level
     }
 
-    @Override protected void tearDown() throws Exception {
-        if (activity != null) getInstrumentation().runOnMainSync(() -> activity.finish());
+    @After public void tearDown() throws Exception {
+        if (activity != null) InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> activity.finish());
         SystemClock.sleep(150);
-        super.tearDown();
     }
 
+    @Test
     public void testJumpButtonFollowsRightAndKeepsJoystickPointer() throws Exception {
         pointerDown(0,180,612);
         pointerDownSecond(1,1203,612,0,180,612);
@@ -50,6 +56,7 @@ public final class TouchControlsTest extends InstrumentationTestCase {
         pointerUp(0,180,612);
     }
 
+    @Test
     public void testJumpButtonFollowsLeftAndNeutralJumpIsVertical() throws Exception {
         pointerDown(0,80,612);
         pointerDownSecond(1,1203,612,0,80,612);
@@ -59,12 +66,14 @@ public final class TouchControlsTest extends InstrumentationTestCase {
         pointerUp(0,80,612);
     }
 
+    @Test
     public void testNeutralJumpIsVertical() throws Exception {
         tap(1203,612);
         assertFalse("neutral PULO must start a jump",fieldBoolean("onGround"));
         assertEquals("neutral jump must stay vertical",0f,fieldFloat("jumpForwardSpeed"));
     }
 
+    @Test
     public void testActionShootsAndKeepsLeftMovement() throws Exception {
         setField("carrots",1);
         pointerDown(0,80,612);
@@ -83,6 +92,7 @@ public final class TouchControlsTest extends InstrumentationTestCase {
         pointerUp(0,80,612);
     }
 
+    @Test
     public void testActionShootsAndKeepsRightMovement() throws Exception {
         setField("carrots",1);
         pointerDown(0,180,612);
@@ -100,6 +110,7 @@ public final class TouchControlsTest extends InstrumentationTestCase {
         pointerUp(0,180,612);
     }
 
+    @Test
     public void testLongActionHoldRunsWithoutFiring() throws Exception {
         setField("carrots",1);
         pointerDown(0,180,612);
@@ -140,7 +151,7 @@ public final class TouchControlsTest extends InstrumentationTestCase {
             coords[i]=new MotionEvent.PointerCoords();coords[i].x=xy[i][0];coords[i].y=xy[i][1];coords[i].pressure=1;coords[i].size=1;
         }
         MotionEvent event=MotionEvent.obtain(gestureDownTime,now,action,ids.length,properties,coords,0,0,1,1,0,0,InputDevice.SOURCE_TOUCHSCREEN,0);
-        getInstrumentation().runOnMainSync(()->game.dispatchTouchEvent(event));
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(()->game.dispatchTouchEvent(event));
         event.recycle();
     }
     private Object field(String name) throws Exception {

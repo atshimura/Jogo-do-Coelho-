@@ -145,13 +145,16 @@ public final class TouchControlsTest {
 
     @Test
     public void testSupersaltoMakesDirectionalJumpHigherAndLonger() throws Exception {
+        Method impulse=GameView.class.getDeclaredMethod("jumpImpulse",float.class);impulse.setAccessible(true);
+        setField("power",0);
+        assertEquals("normal directional jump must keep its regular height",game.getHeight()*1.8f,(Float)impulse.invoke(game,1f),.1f);
+        assertEquals("normal vertical jump remains unchanged",game.getHeight()*1.47f,(Float)impulse.invoke(game,0f),.1f);
         setField("power",5);
         setField("powerTime",20f);
         pointerDown(0,180,612);
         pointerDownSecond(1,1203,612,0,180,612);
         assertTrue("Supersalto must increase forward travel",fieldFloat("jumpForwardSpeed")>fieldFloat("normalSpeed")*1.8f);
-        Method impulse=GameView.class.getDeclaredMethod("jumpImpulse",float.class);impulse.setAccessible(true);
-        assertEquals("Supersalto must increase jump height",game.getHeight()*2.55f,(Float)impulse.invoke(game,1f),.1f);
+        assertEquals("Supersalto alone increases jump height",game.getHeight()*2f,(Float)impulse.invoke(game,1f),.1f);
         pointerUpSecond(1,1203,612,0,180,612);
         pointerUp(0,180,612);
         SystemClock.sleep(220);
@@ -194,15 +197,41 @@ public final class TouchControlsTest {
     @Test
     public void testLevelHasMoreEnemyTypesAndStraightRamp() throws Exception {
         ArrayList<?> enemies=(ArrayList<?>)field("enemies");
-        assertTrue("phase should contain a larger enemy group",enemies.size()>=24);
-        int flying=0,tail=0;
-        for(Object value:enemies){Enemy e=(Enemy)value;if(e.flying)flying++;if(e.tail)tail++;}
-        assertTrue("phase should include scarf wearing flying enemies",flying>=5);
+        assertTrue("phase should contain a larger enemy group",enemies.size()>=30);
+        int flying=0,tail=0,horned=0;
+        for(Object value:enemies){Enemy e=(Enemy)value;if(e.flying)flying++;if(e.tail)tail++;if(e.type==Enemy.HORNED)horned++;}
+        assertTrue("phase should include scarf wearing flying enemies",flying>=7);
         assertTrue("phase should include enemies with moving tails",tail>=3);
+        assertTrue("phase should include a visibly different horned enemy",horned>=3);
         Method terrain=GameView.class.getDeclaredMethod("terrainY",float.class);terrain.setAccessible(true);
         float level=fieldFloat("levelLength"),height=game.getHeight();
         float start=(Float)terrain.invoke(game,level*.485f),end=(Float)terrain.invoke(game,level*.497f);
         assertTrue("the straight uphill segment should visibly climb",start-end>height*.14f);
+        for(float point:new float[]{.095f,.285f,.605f,.895f}) {
+            float low=(Float)terrain.invoke(game,level*point),high=(Float)terrain.invoke(game,level*(point+.006f));
+            assertTrue("additional short hill faces should climb sharply",low-high>height*.085f);
+        }
+        Method feet=GameView.class.getDeclaredMethod("enemyFeetY",Enemy.class);feet.setAccessible(true);
+        Enemy grounded=new Enemy(level*.40f,1,false,0,50,Enemy.GROUND);
+        assertEquals("ground enemy feet must rest on terrain",(Float)terrain.invoke(game,grounded.x),(Float)feet.invoke(game,grounded),.01f);
+    }
+
+    @Test
+    public void testEnemyWalkCycleChangesLegPose() throws Exception {
+        Method walk=GameView.class.getDeclaredMethod("drawEnemyWalk",android.graphics.Canvas.class,Enemy.class,float.class,float.class,float.class);walk.setAccessible(true);
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(()->{
+            try {
+                android.graphics.Bitmap first=android.graphics.Bitmap.createBitmap(180,140,android.graphics.Bitmap.Config.ARGB_8888);
+                android.graphics.Bitmap second=android.graphics.Bitmap.createBitmap(180,140,android.graphics.Bitmap.Config.ARGB_8888);
+                Enemy enemy=new Enemy(100,1,false,0,76,Enemy.GROUND);
+                setField("animTime",0f);walk.invoke(game,new android.graphics.Canvas(first),enemy,90f,105f,0f);
+                setField("animTime",.22f);walk.invoke(game,new android.graphics.Canvas(second),enemy,90f,105f,.8f);
+                boolean changed=false;
+                for(int y=70;y<135&&!changed;y++)for(int x=25;x<155;x++)if(first.getPixel(x,y)!=second.getPixel(x,y)){changed=true;break;}
+                assertTrue("enemy paws must visibly change between walking frames",changed);
+                first.recycle();second.recycle();
+            } catch(Exception e) { throw new RuntimeException(e); }
+        });
     }
 
     @Test
@@ -237,9 +266,10 @@ public final class TouchControlsTest {
                 ((ArrayList<?>)field("shots")).clear();
                 float target=fieldFloat("levelLength")*.31f;
                 float size=enemy?(hp>1?136f:98f):164f;
-                float radius=enemy?fieldFloat("bunnyW")*.65f:size*.5f+fieldFloat("bunnyW")*.35f;
-                float speed=fieldFloat("normalSpeed")*1.95f;
-                setField("playerX",target-radius-speed*.40f-(enemy?0:fieldFloat("bunnyW")*.5f));
+                float bunnyW=fieldFloat("bunnyW");
+                float radius=enemy?size*.68f+bunnyW*.87f:size*.5f+bunnyW*.35f;
+                float speed=fieldFloat("normalSpeed")*1.55f;
+                setField("playerX",target-radius-speed*.50f-(enemy?0:bunnyW*.5f));
                 setField("onGround",true);setField("vy",0f);setField("jumpForwardSpeed",0f);
                 setField("hitCooldown",0f);setField("hearts",3);setField("power",0);setField("powerTime",0f);
                 if(enemy)((ArrayList<Enemy>)field("enemies")).add(new Enemy(target,hp,hp>1,0f,size));

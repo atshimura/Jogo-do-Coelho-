@@ -137,25 +137,25 @@ final class GameView extends View {
             float x=levelLength*(.1f+i*.19f);
             pickups.add(new Pickup(x, 2, 0));
         }
-        for(int i=0;i<18;i++) {
-            float x=levelLength*(.055f+i*.05f);
-            boolean big=i%4==0;
-            int type=i%5==2?Enemy.TAIL:Enemy.GROUND;
+        for(int i=0;i<22;i++) {
+            float x=levelLength*(.045f+i*.043f);
+            boolean big=i%5==0 || i%7==3;
+            int type=i%7==3?Enemy.HORNED:(i%5==2?Enemy.TAIL:Enemy.GROUND);
             enemies.add(new Enemy(x,big?3:1,big,36*unit+(i%4)*14*unit,(big?68:49)*unit,type));
         }
-        for(int i=0;i<6;i++) {
-            float x=levelLength*(.13f+i*.145f);
+        for(int i=0;i<8;i++) {
+            float x=levelLength*(.105f+i*.112f);
             boolean big=i==3;
             enemies.add(new Enemy(x,big?3:1,big,45*unit+(i%3)*10*unit,(big?60:49)*unit,Enemy.FLYING));
         }
-        for(int i=0;i<11;i++) {
-            float x=levelLength*(.08f+i*.078f);
+        for(int i=0;i<14;i++) {
+            float x=levelLength*(.065f+i*.063f);
             // A fase 1 não tem buracos; eles ficam disponíveis para fases futuras.
             int type = i%2==0 ? 0 : 2;
             hazards.add(new Hazard(x, type, (54+ (i%3)*14)*unit));
         }
-        for(int i=0;i<80;i++) {
-            float x=(i*348f + (i%5)*71f)*unit;
+        for(int i=0;i<150;i++) {
+            float x=(i*236f + (i%5)*53f)*unit;
             decor.add(new Decor(x, i%6, 0.65f+(i%4)*.13f));
         }
         startMillis=System.currentTimeMillis();
@@ -290,12 +290,12 @@ final class GameView extends View {
         // botão for apertado pouco antes de tocar o chão.
         jumpBufferTime=0;
         if(dir!=0) facingRight=dir>0;
-        float jumpForwardMultiplier=power==SUPER_JUMP?2.15f:1.95f;
+        float jumpForwardMultiplier=power==SUPER_JUMP?1.85f:1.55f;
         jumpForwardSpeed=normalSpeed*jumpForwardMultiplier*dir;
         Log.d("CoelhitosInput","jump dir="+(int)dir+" source="+source);
         vy=-jumpImpulse(dir); onGround=false; audio.effect(6);
     }
-    private float jumpImpulse(float dir) { return power==SUPER_JUMP?h*2.55f:(dir==0?h*1.47f:h*2.4f); }
+    private float jumpImpulse(float dir) { return power==SUPER_JUMP?h*2f:(dir==0?h*1.47f:h*1.8f); }
     private void say(String s) { notice=s; noticeTime=1.25f; }
     private void hurt() {
         if(hitCooldown>0 || state!=1)return;
@@ -420,6 +420,16 @@ final class GameView extends View {
         near.lineTo(w*2,h*.84f);near.lineTo(-w,h*.84f);near.close();
         p.setShader(new LinearGradient(0,h*.50f,0,h*.85f,Color.rgb(152,220,155),Color.rgb(92,180,119),Shader.TileMode.CLAMP));c.drawPath(near,p);p.setShader(null);
         p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(3*unit);p.setColor(Color.argb(115,225,250,171));c.drawPath(near,p);p.setStyle(Paint.Style.FILL);
+        // Morros distantes com faces retas e picos suaves para quebrar a linha uniforme do horizonte.
+        float ridgeShift=(camera*.075f)%(w*.34f);
+        Path ridge=new Path();ridge.moveTo(-w,h*.70f);
+        for(int i=-2;i<7;i++) {
+            float x=i*w*.34f-ridgeShift, base=h*(.68f+(i%2)*.025f), peak=h*(.43f+(i%3)*.035f);
+            ridge.lineTo(x+w*.10f,base);ridge.lineTo(x+w*.22f,peak);ridge.lineTo(x+w*.34f,base);
+        }
+        ridge.lineTo(w*2,h*.76f);ridge.lineTo(-w,h*.76f);ridge.close();
+        p.setShader(new LinearGradient(0,h*.43f,0,h*.77f,Color.rgb(176,222,190),Color.rgb(125,190,152),Shader.TileMode.CLAMP));c.drawPath(ridge,p);p.setShader(null);
+        p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(2*unit);p.setColor(Color.argb(75,250,255,216));c.drawPath(ridge,p);p.setStyle(Paint.Style.FILL);
     }
     private void drawGround(Canvas c) {
         float step=34*unit;Path soil=new Path();soil.moveTo(-step,terrainY(camera-step));
@@ -448,6 +458,14 @@ final class GameView extends View {
         y+=ramp(worldX,levelLength*.514f,levelLength*.526f,h*.205f);
         y-=ramp(worldX,levelLength*.735f,levelLength*.744f,h*.17f);
         y+=ramp(worldX,levelLength*.758f,levelLength*.769f,h*.17f);
+        y-=ramp(worldX,levelLength*.095f,levelLength*.101f,h*.14f);
+        y+=ramp(worldX,levelLength*.106f,levelLength*.112f,h*.14f);
+        y-=ramp(worldX,levelLength*.285f,levelLength*.292f,h*.16f);
+        y+=ramp(worldX,levelLength*.300f,levelLength*.307f,h*.16f);
+        y-=ramp(worldX,levelLength*.605f,levelLength*.611f,h*.15f);
+        y+=ramp(worldX,levelLength*.620f,levelLength*.626f,h*.15f);
+        y-=ramp(worldX,levelLength*.895f,levelLength*.901f,h*.13f);
+        y+=ramp(worldX,levelLength*.910f,levelLength*.916f,h*.13f);
         return y;
     }
     private float ramp(float x,float start,float end,float rise) {
@@ -542,14 +560,21 @@ final class GameView extends View {
         float wag=(float)Math.sin(animTime*8.7f+e.phase);
         if(e.tail) drawEnemyTail(c,x,baseY,e.size,wag);
         if(e.flying) drawScarf(c,x,baseY,e.size,wag);
-        Bitmap sprite=e.big?enemyLargeSprite:enemySmallSprite;
-        float gait=(float)Math.sin(animTime*8f+e.phase);
-        c.save();c.translate(x,baseY);c.scale(1f+Math.abs(gait)*.018f,1f-Math.abs(gait)*.025f);c.translate(-x,-baseY);
-        float spriteH=drawSpriteAtBottom(c,sprite,x,baseY,e.size*1.86f,e.size*1.34f);c.restore();
+        float gait=(float)Math.sin(animTime*8f+e.phase),spriteH;
+        if(e.flying) spriteH=drawFlyingEnemy(c,e,x,baseY,gait);
+        else if(e.type==Enemy.HORNED) spriteH=drawHornedEnemy(c,e,x,baseY,gait);
+        else {
+            Bitmap sprite=e.big?enemyLargeSprite:enemySmallSprite;
+            float bodyBob=Math.max(0,gait)*e.size*.045f,bodyFloor=baseY-bodyBob;
+            c.save();c.translate(x,bodyFloor);c.scale(e.tail?1.22f:1f, e.tail?.84f:1f);c.scale(1f+Math.abs(gait)*.025f,1f-Math.abs(gait)*.035f);c.translate(-x,-bodyFloor);
+            spriteH=drawSpriteAtBottom(c,sprite,x,bodyFloor,e.size*1.86f,e.size*1.34f);c.restore();
+            if(e.tail) drawEnemyRings(c,x,baseY,e.size,wag);
+        }
+        if(!e.flying) drawEnemyWalk(c,e,x,baseY,gait);
         float blink=(animTime+e.phase*.35f)%3.6f;
         if(blink<.13f) {
             float eyeY=baseY-spriteH*.40f;
-            p.setColor(e.big?Color.rgb(189,165,223):Color.rgb(148,208,239));p.setStrokeWidth(2.2f*unit);p.setStrokeCap(Paint.Cap.ROUND);
+            p.setColor(e.type==Enemy.HORNED?Color.rgb(244,191,78):(e.flying?Color.rgb(99,205,177):(e.big?Color.rgb(189,165,223):Color.rgb(148,208,239))));p.setStrokeWidth(2.2f*unit);p.setStrokeCap(Paint.Cap.ROUND);
             c.drawLine(x+e.size*.20f,eyeY,x+e.size*.31f,eyeY+1.5f*unit,p);
             c.drawLine(x+e.size*.48f,eyeY+2*unit,x+e.size*.58f,eyeY,p);
             p.setStrokeCap(Paint.Cap.BUTT);
@@ -559,6 +584,51 @@ final class GameView extends View {
             p.setColor(Color.argb(220,255,255,255)); c.drawRoundRect(x-e.size*.42f,top,x+e.size*.42f,top+7*unit,4*unit,4*unit,p);
             p.setColor(Color.rgb(237,92,103)); c.drawRoundRect(x-e.size*.39f,top+1.2f*unit,x-e.size*.39f+e.size*.78f*Math.max(0,e.hp)/(float)e.maxHp,top+5.8f*unit,3*unit,3*unit,p);
         }
+    }
+    private float drawFlyingEnemy(Canvas c,Enemy e,float x,float feet,float flap) {
+        float s=e.size, mid=feet-s*.53f, wingY=mid-s*.02f;
+        Path wing=new Path();wing.moveTo(x-s*.28f,wingY);wing.quadTo(x-s*.72f,wingY-s*(.25f+Math.abs(flap)*.2f),x-s*.46f,wingY-s*(.55f+Math.max(0,flap)*.18f));wing.quadTo(x-s*.05f,wingY-s*.38f,x+s*.04f,wingY);wing.close();
+        p.setShader(new LinearGradient(x-s*.5f,wingY-s*.5f,x,wingY,Color.rgb(112,233,195),Color.rgb(30,153,143),Shader.TileMode.CLAMP));c.drawPath(wing,p);p.setShader(null);
+        p.setShader(new LinearGradient(x-s*.45f,mid-s*.32f,x+s*.48f,feet,Color.rgb(162,244,215),Color.rgb(39,167,150),Shader.TileMode.CLAMP));
+        c.drawOval(x-s*.52f,mid-s*.37f,x+s*.43f,feet-s*.08f,p);p.setShader(null);
+        c.drawCircle(x+s*.27f,mid-s*.24f,s*.28f,p);
+        Path beak=new Path();beak.moveTo(x+s*.43f,mid-s*.19f);beak.lineTo(x+s*.77f,mid-s*.10f);beak.lineTo(x+s*.43f,mid+s*.02f);beak.close();
+        p.setShader(new LinearGradient(x+s*.43f,mid-s*.2f,x+s*.72f,mid,Color.rgb(255,224,105),Color.rgb(235,139,42),Shader.TileMode.CLAMP));c.drawPath(beak,p);p.setShader(null);
+        p.setColor(Color.WHITE);c.drawCircle(x+s*.30f,mid-s*.28f,s*.10f,p);p.setColor(Color.rgb(43,59,73));c.drawCircle(x+s*.34f,mid-s*.27f,s*.055f,p);
+        p.setColor(Color.rgb(237,164,71));p.setStrokeWidth(s*.055f);p.setStrokeCap(Paint.Cap.ROUND);c.drawLine(x-s*.13f,feet-s*.09f,x-s*.18f,feet,p);c.drawLine(x+s*.05f,feet-s*.09f,x+s*.03f,feet,p);p.setStrokeCap(Paint.Cap.BUTT);
+        return s*.94f;
+    }
+    private void drawEnemyWalk(Canvas c,Enemy e,float x,float feet,float gait) {
+        float s=e.size, phase=animTime*9.5f+e.phase;
+        int limb=e.type==Enemy.HORNED?Color.rgb(174,98,43):(e.tail?Color.rgb(151,119,190):Color.rgb(44,130,192));
+        int paw=e.type==Enemy.HORNED?Color.rgb(255,215,123):(e.tail?Color.rgb(217,197,238):Color.rgb(143,210,245));
+        p.setStyle(Paint.Style.STROKE);p.setStrokeCap(Paint.Cap.ROUND);p.setStrokeWidth(s*.105f);
+        for(int side=-1;side<=1;side+=2) {
+            float stride=(float)Math.sin(phase+(side<0?0:Math.PI))*.10f*s;
+            float lift=Math.max(0,(float)Math.sin(phase+(side<0?0:Math.PI)))*.075f*s;
+            float hipX=x+side*s*.24f,hipY=feet-s*.25f,pawX=hipX+stride,pawY=feet-s*.065f-lift;
+            p.setColor(limb);c.drawLine(hipX,hipY,pawX,pawY,p);
+            p.setStyle(Paint.Style.FILL);p.setColor(paw);c.drawOval(pawX-s*.12f,pawY-s*.05f,pawX+s*.15f,pawY+s*.045f,p);
+            p.setStyle(Paint.Style.STROKE);
+        }
+        p.setStyle(Paint.Style.FILL);p.setStrokeCap(Paint.Cap.BUTT);
+    }
+    private float drawHornedEnemy(Canvas c,Enemy e,float x,float feet,float gait) {
+        float s=e.size, top=feet-s*1.04f;
+        Path plates=new Path();plates.moveTo(x-s*.48f,feet-s*.62f);
+        for(int i=0;i<4;i++){float px=x-s*.38f+i*s*.24f;plates.lineTo(px,top+s*(i%2==0?.06f:.16f));plates.lineTo(px+s*.19f,feet-s*.60f);}
+        plates.close();p.setShader(new LinearGradient(x-s*.35f,top,x+s*.35f,feet-s*.5f,Color.rgb(250,225,136),Color.rgb(214,140,51),Shader.TileMode.CLAMP));c.drawPath(plates,p);p.setShader(null);
+        p.setShader(new LinearGradient(x-s*.55f,top+s*.16f,x+s*.48f,feet,Color.rgb(255,218,122),Color.rgb(207,119,46),Shader.TileMode.CLAMP));
+        c.drawOval(x-s*.56f,feet-s*.89f,x+s*.58f,feet-s*.04f,p);c.drawCircle(x+s*.28f,feet-s*.76f,s*.27f,p);p.setShader(null);
+        p.setColor(Color.rgb(255,243,203));c.drawCircle(x+s*.35f,feet-s*.78f,s*.105f,p);p.setColor(Color.rgb(69,48,39));c.drawCircle(x+s*.39f,feet-s*.78f,s*.055f,p);
+        p.setColor(Color.rgb(247,241,208));c.drawOval(x-s*.44f,feet-s*.13f,x-s*.08f,feet+s*.025f,p);c.drawOval(x+s*.12f,feet-s*.13f,x+s*.48f,feet+s*.025f,p);
+        p.setColor(Color.rgb(229,169,71));c.drawCircle(x+s*.5f,feet-s*.43f,s*.075f,p);
+        return s*.98f;
+    }
+    private void drawEnemyRings(Canvas c,float x,float feet,float size,float wag) {
+        p.setColor(Color.argb(190,235,207,245));p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(size*.045f);
+        for(int i=0;i<3;i++){float xx=x-size*(.22f-i*.22f);c.drawArc(xx-size*.08f,feet-size*.68f,xx+size*.08f,feet-size*.4f,185,150,false,p);}p.setStyle(Paint.Style.FILL);
+        p.setColor(Color.rgb(240,218,252));c.drawCircle(x-size*(.74f+wag*.1f),feet-size*.13f,size*.07f,p);
     }
     private void drawEnemyTail(Canvas c,float x,float feet,float size,float wag) {
         Path tail=new Path();tail.moveTo(x-size*.58f,feet-size*.27f);
@@ -800,7 +870,7 @@ final class Pickup {
     Pickup(float x,int type,int unused){this.x=x;this.type=type;this.unused=unused;}
 }
 final class Enemy {
-    static final int GROUND=0,TAIL=1,FLYING=2;
+    static final int GROUND=0,TAIL=1,FLYING=2,HORNED=3;
     float x,hp,phase; final int maxHp,type; final boolean big,flying,tail; final float range; boolean dead=false; final float size;
     Enemy(float x,int hp,boolean big,float range,float size){this(x,hp,big,range,size,GROUND);}
     Enemy(float x,int hp,boolean big,float range,float size,int type){this.x=x;this.hp=hp;this.maxHp=hp;this.big=big;this.range=range;this.phase=x*.004f;this.size=size;this.type=type;this.flying=type==FLYING;this.tail=type==TAIL;}

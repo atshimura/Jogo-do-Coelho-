@@ -323,11 +323,18 @@ final class GameView extends View {
         float top=feet-e.size*(e.flying?1.05f:1.22f);
         return overlaps(playerL,playerT,playerR,playerB,e.x-half,top,e.x+half,feet);
     }
+    private boolean enemyTouchingPlayer(Enemy e,float px,float py,float dir) {
+        float half=e.size*(e.flying?.57f:.68f),feet=enemyFeetY(e),top=feet-e.size*(e.flying?1.05f:1.22f);
+        float playerTop=py+bunnyH*.13f,playerBottom=py+bunnyH*.98f;
+        if(playerTop>=feet||playerBottom<=top)return false;
+        float gap=dir>=0?Math.abs(px+bunnyW*.87f-(e.x-half)):Math.abs(px+bunnyW*.13f-(e.x+half));
+        return gap<=unit*2f;
+    }
     private void resolvePlayerCollisions(float previousX,float dir) {
         for(Enemy e:enemies) {
             if(e.dead || !enemyOverlapsPlayer(e,playerX,playerY)) continue;
-            hurt();
-            boolean wasOverlapping=enemyOverlapsPlayer(e,previousX,playerY);
+            boolean wasOverlapping=enemyOverlapsPlayer(e,previousX,playerY)||enemyTouchingPlayer(e,previousX,playerY,dir);
+            if(!wasOverlapping)hurt();
             if(!wasOverlapping || dir>0&&e.x>=previousX || dir<0&&e.x<=previousX) {
                 float half=e.size*(e.flying?.57f:.68f);
                 if(dir>0) playerX=Math.min(playerX,e.x-half-bunnyW*.87f);
@@ -339,14 +346,21 @@ final class GameView extends View {
             if(z.type==1) { left=z.x-z.size*.08f; right=z.x+z.size*1.08f; top=floor-z.size*.58f; }
             else { float half=z.size*(z.type==0?.57f:.52f); left=z.x-half;right=z.x+half;top=floor-z.size*(z.type==0?1.08f:.86f); }
             if(!overlaps(playerX+bunnyW*.13f,playerY+bunnyH*.13f,playerX+bunnyW*.87f,playerY+bunnyH*.98f,left,top,right,bottom)) continue;
-            hurt();
             boolean wasOverlapping=overlaps(previousX+bunnyW*.13f,playerY+bunnyH*.13f,previousX+bunnyW*.87f,playerY+bunnyH*.98f,left,top,right,bottom);
+            float previousEdge=dir>=0?previousX+bunnyW*.87f:previousX+bunnyW*.13f;
+            float contactEdge=dir>=0?left:right;
+            boolean atContact=dir==0?false:Math.abs(previousEdge-contactEdge)<=unit*2f && previousYOverlapsHazard(previousX,playerY,top,bottom);
+            if(!wasOverlapping&&!atContact)hurt();
+            wasOverlapping=wasOverlapping||atContact;
             if(!wasOverlapping || dir>0&&z.x>=previousX || dir<0&&z.x<=previousX) {
                 if(dir>0) playerX=Math.min(playerX,left-bunnyW*.87f);
                 else if(dir<0) playerX=Math.max(playerX,right-bunnyW*.13f);
             }
         }
         if(onGround) { ground=terrainY(playerX); playerY=ground-bunnyH; }
+    }
+    private boolean previousYOverlapsHazard(float px,float py,float top,float bottom) {
+        return py+bunnyH*.13f<bottom && py+bunnyH*.98f>top;
     }
 
     private void shoot() {
@@ -561,11 +575,14 @@ final class GameView extends View {
         if(e.tail) drawEnemyTail(c,x,baseY,e.size,wag);
         if(e.flying) drawScarf(c,x,baseY,e.size,wag);
         float gait=(float)Math.sin(animTime*8f+e.phase),spriteH;
+        float bodyBob=Math.max(0,gait)*e.size*.045f,bodyY=baseY-bodyBob;
         if(e.flying) spriteH=drawFlyingEnemy(c,e,x,baseY,gait);
-        else if(e.type==Enemy.HORNED) spriteH=drawHornedEnemy(c,e,x,baseY,gait);
+        else if(e.type==Enemy.HORNED) spriteH=drawHornedEnemy(c,e,x,bodyY,gait);
+        else if(e.type==Enemy.TAIL) spriteH=drawTailCreature(c,e,x,bodyY,gait);
+        else if(e.big) spriteH=drawShellCreature(c,e,x,bodyY,gait);
         else {
             Bitmap sprite=e.big?enemyLargeSprite:enemySmallSprite;
-            float bodyBob=Math.max(0,gait)*e.size*.045f,bodyFloor=baseY-bodyBob;
+            float bodyFloor=bodyY;
             c.save();c.translate(x,bodyFloor);c.scale(e.tail?1.22f:1f, e.tail?.84f:1f);c.scale(1f+Math.abs(gait)*.025f,1f-Math.abs(gait)*.035f);c.translate(-x,-bodyFloor);
             spriteH=drawSpriteAtBottom(c,sprite,x,bodyFloor,e.size*1.86f,e.size*1.34f);c.restore();
             if(e.tail) drawEnemyRings(c,x,baseY,e.size,wag);
@@ -600,18 +617,39 @@ final class GameView extends View {
     }
     private void drawEnemyWalk(Canvas c,Enemy e,float x,float feet,float gait) {
         float s=e.size, phase=animTime*9.5f+e.phase;
-        int limb=e.type==Enemy.HORNED?Color.rgb(174,98,43):(e.tail?Color.rgb(151,119,190):Color.rgb(44,130,192));
-        int paw=e.type==Enemy.HORNED?Color.rgb(255,215,123):(e.tail?Color.rgb(217,197,238):Color.rgb(143,210,245));
+        int limb=e.type==Enemy.HORNED?Color.rgb(174,98,43):(e.tail?Color.rgb(111,94,153):(e.big?Color.rgb(78,136,86):Color.rgb(44,130,192)));
+        int paw=e.type==Enemy.HORNED?Color.rgb(255,215,123):(e.tail?Color.rgb(203,181,233):(e.big?Color.rgb(173,211,132):Color.rgb(143,210,245)));
         p.setStyle(Paint.Style.STROKE);p.setStrokeCap(Paint.Cap.ROUND);p.setStrokeWidth(s*.105f);
         for(int side=-1;side<=1;side+=2) {
             float stride=(float)Math.sin(phase+(side<0?0:Math.PI))*.10f*s;
             float lift=Math.max(0,(float)Math.sin(phase+(side<0?0:Math.PI)))*.075f*s;
-            float hipX=x+side*s*.24f,hipY=feet-s*.25f,pawX=hipX+stride,pawY=feet-s*.065f-lift;
+            float hipX=x+side*s*.24f,hipY=feet-s*.19f,pawX=hipX+stride,pawY=feet-s*.035f-lift;
             p.setColor(limb);c.drawLine(hipX,hipY,pawX,pawY,p);
             p.setStyle(Paint.Style.FILL);p.setColor(paw);c.drawOval(pawX-s*.12f,pawY-s*.05f,pawX+s*.15f,pawY+s*.045f,p);
             p.setStyle(Paint.Style.STROKE);
         }
         p.setStyle(Paint.Style.FILL);p.setStrokeCap(Paint.Cap.BUTT);
+    }
+    private float drawTailCreature(Canvas c,Enemy e,float x,float feet,float gait) {
+        float s=e.size,body=feet-s*.08f;
+        p.setShader(new LinearGradient(x-s*.58f,feet-s*.75f,x+s*.55f,feet,Color.rgb(220,202,246),Color.rgb(128,96,184),Shader.TileMode.CLAMP));
+        c.drawOval(x-s*.72f,feet-s*.73f,x+s*.50f,body,p);c.drawCircle(x+s*.36f,feet-s*.67f,s*.31f,p);p.setShader(null);
+        p.setColor(Color.argb(95,255,255,255));p.setStrokeWidth(s*.045f);p.setStyle(Paint.Style.STROKE);
+        for(int i=0;i<3;i++){float xx=x-s*.38f+i*s*.21f;c.drawArc(xx-s*.09f,feet-s*.58f,xx+s*.09f,feet-s*.23f,195,140,false,p);}p.setStyle(Paint.Style.FILL);
+        p.setColor(Color.WHITE);c.drawCircle(x+s*.47f,feet-s*.72f,s*.11f,p);p.setColor(Color.rgb(46,44,67));c.drawCircle(x+s*.51f,feet-s*.71f,s*.055f,p);
+        p.setColor(Color.rgb(255,188,196));c.drawCircle(x+s*.66f,feet-s*.49f,s*.075f,p);
+        return s*.94f;
+    }
+    private float drawShellCreature(Canvas c,Enemy e,float x,float feet,float gait) {
+        float s=e.size,body=feet-s*.07f;
+        p.setShader(new LinearGradient(x-s*.55f,feet-s*.65f,x+s*.55f,feet,Color.rgb(192,238,149),Color.rgb(82,160,91),Shader.TileMode.CLAMP));
+        c.drawOval(x-s*.59f,feet-s*.72f,x+s*.58f,body,p);c.drawCircle(x+s*.36f,feet-s*.68f,s*.27f,p);p.setShader(null);
+        p.setShader(new LinearGradient(x-s*.38f,feet-s*1.02f,x+s*.18f,feet-s*.36f,Color.rgb(255,224,131),Color.rgb(205,128,63),Shader.TileMode.CLAMP));
+        c.drawOval(x-s*.40f,feet-s*1.02f,x+s*.23f,feet-s*.40f,p);p.setShader(null);
+        p.setColor(Color.argb(145,255,247,201));p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(s*.035f);c.drawArc(x-s*.32f,feet-s*.94f,x+s*.15f,feet-s*.48f,200,120,false,p);p.setStyle(Paint.Style.FILL);
+        p.setColor(Color.WHITE);c.drawCircle(x+s*.45f,feet-s*.73f,s*.105f,p);p.setColor(Color.rgb(59,66,42));c.drawCircle(x+s*.49f,feet-s*.72f,s*.052f,p);
+        p.setColor(Color.rgb(70,135,75));p.setStrokeWidth(s*.035f);p.setStrokeCap(Paint.Cap.ROUND);c.drawLine(x+s*.20f,feet-s*.85f,x+s*.25f,feet-s*1.08f,p);c.drawLine(x+s*.38f,feet-s*.87f,x+s*.49f,feet-s*1.04f,p);p.setStrokeCap(Paint.Cap.BUTT);
+        return s*.98f;
     }
     private float drawHornedEnemy(Canvas c,Enemy e,float x,float feet,float gait) {
         float s=e.size, top=feet-s*1.04f;

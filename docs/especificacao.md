@@ -41,6 +41,7 @@ Jogo de plataforma 2D lateral para celular Android, sempre em orientação horiz
 - Supersalto aumenta a altura e a distância do pulo por 20 segundos.
 - Com a direcional para a esquerda ou direita, o botão de pulo dá um salto frontal de altura normal, suficiente para superar espinhos, fogo e inimigos quando acionado no momento certo. Somente o poder Supersalto aumenta a altura do pulo. A colisão acontece ao nível do chão; o salto evita o dano enquanto o coelho passa acima do perigo.
 - O corpo do coelho colide com a área visível de inimigos e obstáculos: um contato bloqueia seu avanço e aplica a regra de dano já definida. Saltar acima da área de colisão continua permitindo passar sem dano.
+- Manter a direção empurrada contra o mesmo inimigo ou obstáculo bloqueia o coelho sem reaplicar dano durante o contato contínuo.
 
 ## Poderes
 

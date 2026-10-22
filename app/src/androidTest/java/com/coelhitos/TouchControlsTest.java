@@ -248,6 +248,9 @@ public final class TouchControlsTest {
                 setField("playerX",start+wid*.55f);resolve.invoke(game,start,1f);
                 assertEquals("colliding with an enemy costs one heart",2,fieldInt("hearts"));
                 assertTrue("enemy collision blocks forward movement",fieldFloat("playerX")<start+wid*.55f);
+                float blocked=fieldFloat("playerX");setField("hitCooldown",0f);setField("playerX",blocked+wid*.1f);resolve.invoke(game,blocked,1f);
+                assertEquals("holding against the same enemy must not repeatedly take hearts",2,fieldInt("hearts"));
+                assertEquals("continued pressure stays blocked at contact",blocked,fieldFloat("playerX"),.1f);
                 ((ArrayList<?>)field("enemies")).clear();setField("hearts",3);setField("hitCooldown",0f);setField("playerX",start);
                 ((ArrayList<Hazard>)field("hazards")).add(new Hazard(start+wid*1.35f,0,54*unit));
                 setField("playerX",start+wid*.55f);resolve.invoke(game,start,1f);

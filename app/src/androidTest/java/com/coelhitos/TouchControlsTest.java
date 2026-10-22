@@ -239,7 +239,7 @@ public final class TouchControlsTest {
                 float size=enemy?(hp>1?136f:98f):164f;
                 float radius=enemy?fieldFloat("bunnyW")*.65f:size*.5f+fieldFloat("bunnyW")*.35f;
                 float speed=fieldFloat("normalSpeed")*1.55f;
-                setField("playerX",target-radius-speed*.18f-(enemy?0:fieldFloat("bunnyW")*.5f));
+                setField("playerX",target-radius-speed*.38f-(enemy?0:fieldFloat("bunnyW")*.5f));
                 setField("onGround",true);setField("vy",0f);setField("jumpForwardSpeed",0f);
                 setField("hitCooldown",0f);setField("hearts",3);setField("power",0);setField("powerTime",0f);
                 if(enemy)((ArrayList<Enemy>)field("enemies")).add(new Enemy(target,hp,hp>1,0f,size));
@@ -253,7 +253,7 @@ public final class TouchControlsTest {
         int hearts=fieldInt("hearts");
         pointerUpSecond(1,1203,612,0,180,612);
         pointerUp(0,180,612);
-        assertEquals("timed forward jump must clear "+(enemy?"enemy":"hazard"),3,hearts);
+        assertEquals("timed forward jump must clear "+(enemy?"enemy":"hazard type="+type),3,hearts);
     }
 
     private void tap(float x,float y) {

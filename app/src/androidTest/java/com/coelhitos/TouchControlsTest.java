@@ -86,6 +86,7 @@ public final class TouchControlsTest {
         SystemClock.sleep(240);
         float during=fieldFloat("playerX");
         assertTrue("holding AÇÃO with left movement must keep running left: before="+before+" after="+during,during<before);
+        setField("actionDownAt",SystemClock.uptimeMillis()-200);
         pointerUpSecond(1,1075,612,0,80,612);
         assertEquals("shot must use the leftward movement direction",-1f,fieldFloat("lastShotDirection"),0f);
         assertTrue("releasing AÇÃO must leave joystick movement active",fieldBoolean("leftHeld"));
@@ -105,6 +106,7 @@ public final class TouchControlsTest {
         SystemClock.sleep(240);
         float during=fieldFloat("playerX");
         assertTrue("holding AÇÃO with right movement must keep running right",during>before);
+        setField("actionDownAt",SystemClock.uptimeMillis()-200);
         pointerUpSecond(1,1075,612,0,180,612);
         assertEquals("shot must use the rightward movement direction",1f,fieldFloat("lastShotDirection"),0f);
         assertTrue("releasing AÇÃO must leave joystick movement active",fieldBoolean("rightHeld"));
@@ -244,7 +246,7 @@ public final class TouchControlsTest {
                 setField("power",0);setField("hearts",3);setField("hitCooldown",0f);
                 float start=game.getWidth()*.34f,wid=fieldFloat("bunnyW"),unit=fieldFloat("unit");
                 setField("playerX",start);setField("playerY",((Float)terrain.invoke(game,start))-fieldFloat("bunnyH"));
-                ((ArrayList<Enemy>)field("enemies")).add(new Enemy(start+wid*1.2f,1,false,0,52*unit));
+                ((ArrayList<Enemy>)field("enemies")).add(new Enemy(start+wid*1.6f,1,false,0,52*unit));
                 setField("playerX",start+wid*.55f);resolve.invoke(game,start,1f);
                 assertEquals("colliding with an enemy costs one heart",2,fieldInt("hearts"));
                 assertTrue("enemy collision blocks forward movement",fieldFloat("playerX")<start+wid*.55f);

@@ -191,6 +191,43 @@ public final class TouchControlsTest {
         assertFalse("touch movement is cleared during entry",fieldBoolean("rightHeld"));
     }
 
+    @Test
+    public void testLevelHasMoreEnemyTypesAndStraightRamp() throws Exception {
+        ArrayList<?> enemies=(ArrayList<?>)field("enemies");
+        assertTrue("phase should contain a larger enemy group",enemies.size()>=24);
+        int flying=0,tail=0;
+        for(Object value:enemies){Enemy e=(Enemy)value;if(e.flying)flying++;if(e.tail)tail++;}
+        assertTrue("phase should include scarf wearing flying enemies",flying>=5);
+        assertTrue("phase should include enemies with moving tails",tail>=3);
+        Method terrain=GameView.class.getDeclaredMethod("terrainY",float.class);terrain.setAccessible(true);
+        float level=fieldFloat("levelLength"),height=game.getHeight();
+        float start=(Float)terrain.invoke(game,level*.485f),end=(Float)terrain.invoke(game,level*.497f);
+        assertTrue("the straight uphill segment should visibly climb",start-end>height*.14f);
+    }
+
+    @Test
+    public void testEnemyAndSpikeCollisionsStopRabbit() throws Exception {
+        Method terrain=GameView.class.getDeclaredMethod("terrainY",float.class);terrain.setAccessible(true);
+        Method resolve=GameView.class.getDeclaredMethod("resolvePlayerCollisions",float.class,float.class);resolve.setAccessible(true);
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(()->{
+            try {
+                ((ArrayList<?>)field("enemies")).clear();((ArrayList<?>)field("hazards")).clear();
+                setField("power",0);setField("hearts",3);setField("hitCooldown",0f);
+                float start=game.getWidth()*.34f,wid=fieldFloat("bunnyW"),unit=fieldFloat("unit");
+                setField("playerX",start);setField("playerY",((Float)terrain.invoke(game,start))-fieldFloat("bunnyH"));
+                ((ArrayList<Enemy>)field("enemies")).add(new Enemy(start+wid*1.2f,1,false,0,52*unit));
+                setField("playerX",start+wid*.55f);resolve.invoke(game,start,1f);
+                assertEquals("colliding with an enemy costs one heart",2,fieldInt("hearts"));
+                assertTrue("enemy collision blocks forward movement",fieldFloat("playerX")<start+wid*.55f);
+                ((ArrayList<?>)field("enemies")).clear();setField("hearts",3);setField("hitCooldown",0f);setField("playerX",start);
+                ((ArrayList<Hazard>)field("hazards")).add(new Hazard(start+wid*1.35f,0,54*unit));
+                setField("playerX",start+wid*.55f);resolve.invoke(game,start,1f);
+                assertEquals("spike collision costs one heart",2,fieldInt("hearts"));
+                assertTrue("spike collision blocks forward movement",fieldFloat("playerX")<start+wid*.55f);
+            } catch(Exception e) { throw new RuntimeException(e); }
+        });
+    }
+
     private void clearAndJumpOver(boolean enemy,int type,int hp) throws Exception {
         InstrumentationRegistry.getInstrumentation().runOnMainSync(()->{
             try {

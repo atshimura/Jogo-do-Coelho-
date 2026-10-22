@@ -137,10 +137,16 @@ final class GameView extends View {
             float x=levelLength*(.1f+i*.19f);
             pickups.add(new Pickup(x, 2, 0));
         }
-        for(int i=0;i<14;i++) {
-            float x=levelLength*(.075f+i*.061f);
-            boolean big=i%3==0;
-            enemies.add(new Enemy(x, big ? 3 : 1, big, 90*unit + (i%4)*25*unit, (big?68:49)*unit));
+        for(int i=0;i<18;i++) {
+            float x=levelLength*(.055f+i*.05f);
+            boolean big=i%4==0;
+            int type=i%5==2?Enemy.TAIL:Enemy.GROUND;
+            enemies.add(new Enemy(x,big?3:1,big,36*unit+(i%4)*14*unit,(big?68:49)*unit,type));
+        }
+        for(int i=0;i<6;i++) {
+            float x=levelLength*(.13f+i*.145f);
+            boolean big=i==3;
+            enemies.add(new Enemy(x,big?3:1,big,45*unit+(i%3)*10*unit,(big?60:49)*unit,Enemy.FLYING));
         }
         for(int i=0;i<11;i++) {
             float x=levelLength*(.08f+i*.078f);
@@ -148,9 +154,9 @@ final class GameView extends View {
             int type = i%2==0 ? 0 : 2;
             hazards.add(new Hazard(x, type, (54+ (i%3)*14)*unit));
         }
-        for(int i=0;i<54;i++) {
-            float x=(i*475f + (i%5)*93f)*unit;
-            decor.add(new Decor(x, i%5, 0.65f+(i%4)*.13f));
+        for(int i=0;i<80;i++) {
+            float x=(i*348f + (i%5)*71f)*unit;
+            decor.add(new Decor(x, i%6, 0.65f+(i%4)*.13f));
         }
         startMillis=System.currentTimeMillis();
     }
@@ -165,6 +171,7 @@ final class GameView extends View {
             if(powerTime<=0) { boolean wasLightning=power==LIGHTNING; power=NONE; powerTime=0; say(wasLightning?"O Raio acabou":"O Supersalto acabou"); }
         }
         float dir = (rightHeld?1:0) - (leftHeld?1:0);
+        float playerXBeforeMove=playerX;
         if (Math.abs(dir)>.1f) facingRight=dir>0;
         boolean running = actionHeld && Math.abs(dir)>.1f;
         float speed = normalSpeed*(running?1.7f:1f)*(power==LIGHTNING?1.55f:1f);
@@ -193,13 +200,13 @@ final class GameView extends View {
         while(ei.hasNext()) {
             Enemy e=ei.next();
             if(e.dead) continue;
-            e.x += Math.sin(animTime*1.4f+e.phase)*e.range*dt;
-            float enemyGround=terrainY(e.x);
-            if(power==LIGHTNING && Math.abs(e.x-(playerX+bunnyW*.45f))<bunnyW*.82f && Math.abs(playerY-(enemyGround-bunnyH))<bunnyH*.55f) {
+            float pace=e.flying?1.15f:1.7f;
+            e.x += Math.sin(animTime*pace+e.phase)*e.range*dt;
+            if(power==LIGHTNING && enemyOverlapsPlayer(e,playerX,playerY)) {
                 damageEnemy(e,3); audio.effect(5);
             }
-            if(!e.dead && Math.abs(e.x-playerX)<bunnyW*.65f && Math.abs(playerY-(enemyGround-bunnyH))<bunnyH*.7f) hurt();
         }
+        resolvePlayerCollisions(playerXBeforeMove,dir);
         // Reiniciar limpa as listas; só faça isso depois que os iteradores terminarem.
         if (restartPending) { restartAfterDamage(); return; }
         Iterator<Pickup> pi=pickups.iterator();
@@ -213,11 +220,6 @@ final class GameView extends View {
                 else { power=randomPower(); collectedChests++; audio.effect(2); say(powerName(power)); powerTime=powerDuration(power); }
                 pi.remove();
             }
-        }
-        for(Hazard z:hazards) {
-            float hazardGround=terrainY(z.x);
-            if(z.type==1) { if(playerX+bunnyW*.5f>z.x && playerX+bunnyW*.5f<z.x+z.size && playerY+bunnyH>=hazardGround-bunnyH*.08f) hurt(); }
-            else if(Math.abs((playerX+bunnyW*.5f)-z.x)<z.size*.5f+bunnyW*.35f && playerY+bunnyH>hazardGround-z.size*.7f) hurt();
         }
         if (restartPending) { restartAfterDamage(); return; }
         Iterator<Shot> si=shots.iterator();
@@ -307,6 +309,46 @@ final class GameView extends View {
     private void restartAfterDamage() { restartPending=false; beginGame(); say("A fase recomeçou"); }
     private void damageEnemy(Enemy e,int amount) { if(e.dead)return; e.hp-=amount; if(e.hp<=0){e.dead=true; audio.effect(5);} }
 
+    private float enemyFeetY(Enemy e) {
+        float floor=terrainY(e.x);
+        return e.flying?floor-h*.48f+(float)Math.sin(animTime*3.1f+e.phase)*h*.025f:floor;
+    }
+    private boolean overlaps(float l1,float t1,float r1,float b1,float l2,float t2,float r2,float b2) {
+        return l1<r2 && r1>l2 && t1<b2 && b1>t2;
+    }
+    private boolean enemyOverlapsPlayer(Enemy e,float px,float py) {
+        float playerL=px+bunnyW*.13f,playerR=px+bunnyW*.87f;
+        float playerT=py+bunnyH*.13f,playerB=py+bunnyH*.98f;
+        float feet=enemyFeetY(e),half=e.size*(e.flying?.57f:.68f);
+        float top=feet-e.size*(e.flying?1.05f:1.22f);
+        return overlaps(playerL,playerT,playerR,playerB,e.x-half,top,e.x+half,feet);
+    }
+    private void resolvePlayerCollisions(float previousX,float dir) {
+        for(Enemy e:enemies) {
+            if(e.dead || !enemyOverlapsPlayer(e,playerX,playerY)) continue;
+            hurt();
+            boolean wasOverlapping=enemyOverlapsPlayer(e,previousX,playerY);
+            if(!wasOverlapping || dir>0&&e.x>=previousX || dir<0&&e.x<=previousX) {
+                float half=e.size*(e.flying?.57f:.68f);
+                if(dir>0) playerX=Math.min(playerX,e.x-half-bunnyW*.87f);
+                else if(dir<0) playerX=Math.max(playerX,e.x+half-bunnyW*.13f);
+            }
+        }
+        for(Hazard z:hazards) {
+            float floor=terrainY(z.x),left,right,top,bottom=floor;
+            if(z.type==1) { left=z.x-z.size*.08f; right=z.x+z.size*1.08f; top=floor-z.size*.58f; }
+            else { float half=z.size*(z.type==0?.57f:.52f); left=z.x-half;right=z.x+half;top=floor-z.size*(z.type==0?1.08f:.86f); }
+            if(!overlaps(playerX+bunnyW*.13f,playerY+bunnyH*.13f,playerX+bunnyW*.87f,playerY+bunnyH*.98f,left,top,right,bottom)) continue;
+            hurt();
+            boolean wasOverlapping=overlaps(previousX+bunnyW*.13f,playerY+bunnyH*.13f,previousX+bunnyW*.87f,playerY+bunnyH*.98f,left,top,right,bottom);
+            if(!wasOverlapping || dir>0&&z.x>=previousX || dir<0&&z.x<=previousX) {
+                if(dir>0) playerX=Math.min(playerX,left-bunnyW*.87f);
+                else if(dir<0) playerX=Math.max(playerX,right-bunnyW*.13f);
+            }
+        }
+        if(onGround) { ground=terrainY(playerX); playerY=ground-bunnyH; }
+    }
+
     private void shoot() {
         if(state!=1)return;
         float direction=(leftHeld&&!rightHeld)?-1:(rightHeld&&!leftHeld)?1:(facingRight?1:-1);
@@ -366,25 +408,35 @@ final class GameView extends View {
         c.drawCircle(x,y,r,p);p.setShader(null);
     }
     private void drawHills(Canvas c) {
-        Path path=new Path(); path.moveTo(0,h*.68f);
-        for(int i=-1;i<7;i++){float x=i*w/5f-(camera*.14f)%(w/5f); path.quadTo(x+w*.10f,h*.37f,x+w*.20f,h*.68f);}
-        path.lineTo(w,h*.72f); path.lineTo(0,h*.72f);path.close();
-        p.setShader(new LinearGradient(0,h*.43f,0,h*.72f,Color.rgb(163,222,164),Color.rgb(108,190,128),Shader.TileMode.CLAMP)); c.drawPath(path,p);p.setShader(null);
-        p.setColor(Color.rgb(79,175,106));
-        Path near=new Path();near.moveTo(0,h*.77f);
-        for(int i=-1;i<9;i++){float x=i*w/6f-(camera*.23f)%(w/6f);near.quadTo(x+w*.08f,h*.54f,x+w/6f,h*.78f);}
-        near.lineTo(w,h*.83f);near.lineTo(0,h*.83f);near.close();c.drawPath(near,p);
+        float backShift=(camera*.105f)%(w*.42f);
+        Path back=new Path();back.moveTo(-w,h*.69f);
+        for(int i=-2;i<5;i++){float x=i*w*.42f-backShift;back.quadTo(x+w*.12f,h*(.39f+(i%2)*.035f),x+w*.42f,h*.69f);}
+        back.lineTo(w*2,h*.74f);back.lineTo(-w,h*.74f);back.close();
+        p.setShader(new LinearGradient(0,h*.37f,0,h*.75f,Color.rgb(192,235,207),Color.rgb(118,194,151),Shader.TileMode.CLAMP));c.drawPath(back,p);p.setShader(null);
+        p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(2.4f*unit);p.setColor(Color.argb(100,245,255,227));c.drawPath(back,p);p.setStyle(Paint.Style.FILL);
+        float nearShift=(camera*.20f)%(w*.53f);
+        Path near=new Path();near.moveTo(-w,h*.79f);
+        for(int i=-2;i<5;i++){float x=i*w*.53f-nearShift;near.quadTo(x+w*.15f,h*(.51f+(i%2)*.045f),x+w*.53f,h*.79f);}
+        near.lineTo(w*2,h*.84f);near.lineTo(-w,h*.84f);near.close();
+        p.setShader(new LinearGradient(0,h*.50f,0,h*.85f,Color.rgb(152,220,155),Color.rgb(92,180,119),Shader.TileMode.CLAMP));c.drawPath(near,p);p.setShader(null);
+        p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(3*unit);p.setColor(Color.argb(115,225,250,171));c.drawPath(near,p);p.setStyle(Paint.Style.FILL);
     }
     private void drawGround(Canvas c) {
         float step=34*unit;Path soil=new Path();soil.moveTo(-step,terrainY(camera-step));
         for(float x=-step;x<=w+step;x+=step)soil.lineTo(x,terrainY(Math.max(0,camera+x)));
         soil.lineTo(w+step,h);soil.lineTo(-step,h);soil.close();
-        p.setShader(new LinearGradient(0,h*.72f,0,h,Color.rgb(110,200,79),Color.rgb(47,145,76),Shader.TileMode.CLAMP));c.drawPath(soil,p);p.setShader(null);
+        p.setShader(new LinearGradient(0,h*.70f,0,h,Color.rgb(157,218,107),Color.rgb(62,151,86),Shader.TileMode.CLAMP));c.drawPath(soil,p);p.setShader(null);
         Path edge=new Path();edge.moveTo(-step,terrainY(camera-step));for(float x=-step;x<=w+step;x+=step)edge.lineTo(x,terrainY(Math.max(0,camera+x)));
-        p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(6*unit);p.setColor(Color.rgb(67,174,82));c.drawPath(edge,p);
-        p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(1.6f*unit);p.setColor(Color.rgb(172,225,111));c.drawPath(edge,p);p.setStyle(Paint.Style.FILL);
-        p.setColor(Color.rgb(52,139,69));
-        for(int i=0;i<42;i++) { float x=(i*91*unit-camera)%w; if(x<0)x+=w;float y=terrainY(camera+x)+18*unit+(i%5)*11*unit;c.drawLine(x,y,x+5*unit,y-6*unit,p); }
+        p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(7*unit);p.setColor(Color.argb(100,43,122,72));c.drawPath(edge,p);
+        p.setStrokeWidth(3.2f*unit);p.setColor(Color.rgb(106,190,86));c.drawPath(edge,p);
+        p.setStrokeWidth(1.3f*unit);p.setColor(Color.rgb(225,248,155));c.drawPath(edge,p);p.setStyle(Paint.Style.FILL);
+        for(int i=0;i<36;i++) {
+            float x=(i*107*unit-camera*.93f)%(w+30*unit);if(x<0)x+=w+30*unit;
+            float y=terrainY(camera+x)+20*unit+(i%4)*12*unit;
+            p.setColor(Color.argb(34,31,104,59));c.drawOval(x-5*unit,y-2*unit,x+13*unit,y+4*unit,p);
+            p.setColor(i%3==0?Color.rgb(93,164,75):Color.rgb(77,151,76));
+            for(int k=0;k<3;k++)c.drawLine(x+k*3*unit,y,x+(k-1)*2*unit,y-5*unit,p);
+        }
     }
     private float terrainY(float worldX) {
         float y=h*.82f;
@@ -392,7 +444,15 @@ final class GameView extends View {
         y-=hill(worldX,levelLength*.42f,levelLength*.13f,h*.075f);
         y-=hill(worldX,levelLength*.68f,levelLength*.105f,h*.13f);
         y-=hill(worldX,levelLength*.87f,levelLength*.095f,h*.085f);
+        y-=ramp(worldX,levelLength*.485f,levelLength*.497f,h*.205f);
+        y+=ramp(worldX,levelLength*.514f,levelLength*.526f,h*.205f);
+        y-=ramp(worldX,levelLength*.735f,levelLength*.744f,h*.17f);
+        y+=ramp(worldX,levelLength*.758f,levelLength*.769f,h*.17f);
         return y;
+    }
+    private float ramp(float x,float start,float end,float rise) {
+        if(x<=start)return 0;if(x>=end)return rise;
+        return rise*(x-start)/(end-start);
     }
     private float hill(float x,float center,float halfWidth,float rise) {
         float t=Math.abs(x-center)/halfWidth;if(t>=1)return 0;
@@ -400,12 +460,36 @@ final class GameView extends View {
     }
     private void drawDecor(Canvas c,float x,Decor d) {
         float y=terrainY(d.x), s=d.scale*unit;
-        if(d.kind==0) { // rounded tree
-            p.setColor(Color.rgb(128,88,53)); c.drawRoundRect(x-8*s,y-70*s,x+8*s,y,6*s,6*s,p);
-            p.setColor(Color.rgb(46,161,83)); c.drawCircle(x,y-83*s,30*s,p); p.setColor(Color.rgb(77,190,91)); c.drawCircle(x-13*s,y-93*s,19*s,p); c.drawCircle(x+14*s,y-97*s,18*s,p);
-        } else if(d.kind==1) { p.setColor(Color.rgb(49,154,74)); c.drawCircle(x,y-17*s,23*s,p); c.drawCircle(x+22*s,y-12*s,19*s,p); }
-        else if(d.kind==2) { p.setColor(Color.rgb(247,207,74)); c.drawCircle(x,y-28*s,7*s,p); for(int a=0;a<8;a++){double ang=a*Math.PI/4;c.drawCircle(x+(float)Math.cos(ang)*11*s,y-28*s+(float)Math.sin(ang)*11*s,5*s,p);} }
-        else { p.setColor(Color.rgb(191,149,111)); c.drawOval(x-17*s,y-12*s,x+18*s,y+3*s,p); p.setColor(Color.rgb(215,179,140)); c.drawCircle(x-7*s,y-8*s,3*s,p); }
+        if(d.kind==0) {
+            p.setColor(Color.argb(40,42,86,54));c.drawOval(x-27*s,y-4*s,x+28*s,y+6*s,p);
+            p.setShader(new LinearGradient(x-8*s,y-74*s,x+12*s,y,Color.rgb(191,139,83),Color.rgb(113,75,52),Shader.TileMode.CLAMP));
+            c.drawRoundRect(x-8*s,y-75*s,x+8*s,y,7*s,7*s,p);p.setShader(null);
+            p.setShader(new LinearGradient(x-23*s,y-122*s,x+28*s,y-54*s,Color.rgb(163,230,120),Color.rgb(36,142,82),Shader.TileMode.CLAMP));c.drawCircle(x,y-83*s,31*s,p);p.setShader(null);
+            p.setShader(new LinearGradient(x-28*s,y-115*s,x-7*s,y-75*s,Color.rgb(189,244,143),Color.rgb(95,194,99),Shader.TileMode.CLAMP));c.drawCircle(x-14*s,y-94*s,20*s,p);p.setShader(null);
+            p.setShader(new LinearGradient(x+3*s,y-113*s,x+28*s,y-75*s,Color.rgb(132,221,112),Color.rgb(48,160,88),Shader.TileMode.CLAMP));c.drawCircle(x+15*s,y-96*s,19*s,p);p.setShader(null);
+            p.setColor(Color.argb(105,238,255,191));p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(1.2f*s);c.drawArc(x-27*s,y-113*s,x+4*s,y-61*s,190,105,false,p);p.setStyle(Paint.Style.FILL);
+        } else if(d.kind==1) {
+            p.setColor(Color.argb(38,41,82,48));c.drawOval(x-29*s,y-3*s,x+35*s,y+5*s,p);
+            p.setShader(new LinearGradient(x,y-37*s,x,y+3*s,Color.rgb(119,213,106),Color.rgb(36,137,78),Shader.TileMode.CLAMP));
+            c.drawCircle(x-9*s,y-17*s,22*s,p);c.drawCircle(x+14*s,y-14*s,20*s,p);c.drawCircle(x+1*s,y-27*s,20*s,p);p.setShader(null);
+            p.setColor(Color.argb(90,233,255,176));c.drawCircle(x-5*s,y-31*s,4*s,p);
+        } else if(d.kind==2 || d.kind==4) {
+            p.setColor(Color.rgb(63,146,79));p.setStrokeWidth(2*s);c.drawLine(x,y,x+2*s,y-30*s,p);
+            int petal=d.kind==2?Color.rgb(255,216,102):Color.rgb(255,161,183);
+            p.setShader(new LinearGradient(x-9*s,y-40*s,x+8*s,y-22*s,Color.WHITE,petal,Shader.TileMode.CLAMP));
+            for(int a=0;a<8;a++){double ang=a*Math.PI/4;c.drawCircle(x+(float)Math.cos(ang)*10*s,y-31*s+(float)Math.sin(ang)*10*s,5.5f*s,p);}p.setShader(null);
+            p.setColor(Color.rgb(255,218,91));c.drawCircle(x,y-31*s,5*s,p);
+            if(d.kind==4){p.setColor(Color.rgb(255,255,239));c.drawCircle(x+24*s,y-13*s,4*s,p);p.setColor(Color.rgb(233,134,174));c.drawCircle(x+24*s,y-13*s,2*s,p);}
+        } else if(d.kind==3) {
+            p.setColor(Color.argb(42,38,70,59));c.drawOval(x-20*s,y-2*s,x+22*s,y+6*s,p);
+            p.setShader(new LinearGradient(x-8*s,y-16*s,x+10*s,y+4*s,Color.rgb(222,210,178),Color.rgb(133,142,121),Shader.TileMode.CLAMP));
+            c.drawOval(x-18*s,y-17*s,x+18*s,y+3*s,p);p.setShader(null);
+            p.setColor(Color.argb(145,255,255,224));c.drawArc(x-14*s,y-14*s,x+7*s,y-1*s,190,90,false,p);
+        } else {
+            p.setColor(Color.rgb(69,153,85));p.setStrokeWidth(2*s);c.drawLine(x-5*s,y,x-6*s,y-21*s,p);c.drawLine(x+6*s,y,x+8*s,y-17*s,p);
+            p.setColor(Color.rgb(255,248,217));c.drawCircle(x-6*s,y-24*s,7*s,p);p.setColor(Color.rgb(244,131,151));c.drawCircle(x-6*s,y-24*s,4*s,p);
+            p.setColor(Color.rgb(255,220,103));c.drawCircle(x+8*s,y-20*s,6*s,p);p.setColor(Color.rgb(255,255,240));c.drawCircle(x+8*s,y-20*s,2.5f*s,p);
+        }
     }
     private void drawHazard(Canvas c,Hazard z) {
         float x=z.x-camera,s=z.size;
@@ -449,17 +533,50 @@ final class GameView extends View {
         p.setColor(Color.rgb(255,245,178)); c.drawCircle(x,y-14*s,3*s,p);
     }
     private void drawEnemy(Canvas c,Enemy e) {
-        float baseY=terrainY(e.x), x=e.x-camera;
+        float floor=terrainY(e.x),baseY=enemyFeetY(e),x=e.x-camera;
         if(x<-e.size*2||x>w+e.size*2)return;
         p.setShader(null);p.setStyle(Paint.Style.FILL);p.setAlpha(255);
-        p.setColor(Color.argb(56,33,43,53));c.drawOval(x-e.size*.68f,baseY-e.size*.13f,x+e.size*.68f,baseY+e.size*.04f,p);
+        float shadowScale=e.flying?.72f:.94f;
+        p.setShader(new LinearGradient(x,floor-3*unit,x,floor+8*unit,Color.argb(72,33,54,43),Color.argb(0,33,54,43),Shader.TileMode.CLAMP));
+        c.drawOval(x-e.size*shadowScale,floor-4*unit,x+e.size*shadowScale,floor+7*unit,p);p.setShader(null);
+        float wag=(float)Math.sin(animTime*8.7f+e.phase);
+        if(e.tail) drawEnemyTail(c,x,baseY,e.size,wag);
+        if(e.flying) drawScarf(c,x,baseY,e.size,wag);
         Bitmap sprite=e.big?enemyLargeSprite:enemySmallSprite;
-        float spriteH=drawSpriteAtBottom(c,sprite,x,baseY+e.size*.06f,e.size*1.86f,e.size*1.34f);
+        float gait=(float)Math.sin(animTime*8f+e.phase);
+        c.save();c.translate(x,baseY);c.scale(1f+Math.abs(gait)*.018f,1f-Math.abs(gait)*.025f);c.translate(-x,-baseY);
+        float spriteH=drawSpriteAtBottom(c,sprite,x,baseY,e.size*1.86f,e.size*1.34f);c.restore();
+        float blink=(animTime+e.phase*.35f)%3.6f;
+        if(blink<.13f) {
+            float eyeY=baseY-spriteH*.40f;
+            p.setColor(e.big?Color.rgb(189,165,223):Color.rgb(148,208,239));p.setStrokeWidth(2.2f*unit);p.setStrokeCap(Paint.Cap.ROUND);
+            c.drawLine(x+e.size*.20f,eyeY,x+e.size*.31f,eyeY+1.5f*unit,p);
+            c.drawLine(x+e.size*.48f,eyeY+2*unit,x+e.size*.58f,eyeY,p);
+            p.setStrokeCap(Paint.Cap.BUTT);
+        }
         if(e.maxHp>1) {
             float top=baseY-spriteH-8*unit;
             p.setColor(Color.argb(220,255,255,255)); c.drawRoundRect(x-e.size*.42f,top,x+e.size*.42f,top+7*unit,4*unit,4*unit,p);
             p.setColor(Color.rgb(237,92,103)); c.drawRoundRect(x-e.size*.39f,top+1.2f*unit,x-e.size*.39f+e.size*.78f*Math.max(0,e.hp)/(float)e.maxHp,top+5.8f*unit,3*unit,3*unit,p);
         }
+    }
+    private void drawEnemyTail(Canvas c,float x,float feet,float size,float wag) {
+        Path tail=new Path();tail.moveTo(x-size*.58f,feet-size*.27f);
+        tail.cubicTo(x-size*(.94f+wag*.08f),feet-size*(.38f+wag*.12f),x-size*(1.02f+wag*.08f),feet-size*(.05f+wag*.16f),x-size*(.72f+wag*.1f),feet-size*.12f);
+        p.setColor(Color.argb(100,61,53,80));p.setStrokeWidth(size*.19f);p.setStrokeCap(Paint.Cap.ROUND);p.setStyle(Paint.Style.STROKE);c.drawPath(tail,p);
+        p.setColor(Color.rgb(209,190,237));p.setStrokeWidth(size*.13f);c.drawPath(tail,p);p.setStyle(Paint.Style.FILL);p.setStrokeCap(Paint.Cap.BUTT);
+        p.setShader(new LinearGradient(x-size*.86f,feet-size*.32f,x-size*.55f,feet-size*.04f,Color.WHITE,Color.rgb(188,159,221),Shader.TileMode.CLAMP));
+        c.drawCircle(x-size*(.74f+wag*.1f),feet-size*.13f,size*.15f,p);p.setShader(null);
+    }
+    private void drawScarf(Canvas c,float x,float feet,float size,float wag) {
+        float neckX=x-size*.12f,neckY=feet-size*.79f;
+        p.setShader(new LinearGradient(neckX-size*.14f,neckY-size*.08f,neckX+size*.18f,neckY+size*.17f,Color.rgb(255,184,116),Color.rgb(232,91,82),Shader.TileMode.CLAMP));
+        c.drawRoundRect(neckX-size*.2f,neckY-size*.07f,neckX+size*.17f,neckY+size*.12f,size*.08f,size*.08f,p);p.setShader(null);
+        Path ribbon=new Path();ribbon.moveTo(neckX-size*.12f,neckY);
+        ribbon.cubicTo(x-size*(.66f+wag*.13f),neckY-size*(.15f+wag*.18f),x-size*(.83f+wag*.1f),neckY+size*(.12f+wag*.14f),x-size*(1.15f+wag*.12f),neckY+size*(.06f+wag*.16f));
+        ribbon.lineTo(x-size*(.88f+wag*.1f),neckY+size*.25f);ribbon.cubicTo(x-size*.55f,neckY+size*.26f,x-size*.34f,neckY+size*.08f,neckX-size*.02f,neckY+size*.1f);ribbon.close();
+        p.setShader(new LinearGradient(x-size,neckY-size*.2f,x-size*.4f,neckY+size*.22f,Color.rgb(255,176,122),Color.rgb(205,65,74),Shader.TileMode.CLAMP));c.drawPath(ribbon,p);p.setShader(null);
+        p.setColor(Color.rgb(255,202,154));p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(1.5f*unit);c.drawLine(neckX-size*.18f,neckY-size*.015f,neckX+size*.12f,neckY+size*.04f,p);p.setStyle(Paint.Style.FILL);
     }
     private void drawRabbit(Canvas c,float x,float y) {
         float s=bunnyH;
@@ -683,8 +800,10 @@ final class Pickup {
     Pickup(float x,int type,int unused){this.x=x;this.type=type;this.unused=unused;}
 }
 final class Enemy {
-    float x,hp,phase; final int maxHp; final boolean big; final float range; boolean dead=false; final float size;
-    Enemy(float x,int hp,boolean big,float range,float size){this.x=x;this.hp=hp;this.maxHp=hp;this.big=big;this.range=range;this.phase=x*.004f;this.size=size;}
+    static final int GROUND=0,TAIL=1,FLYING=2;
+    float x,hp,phase; final int maxHp,type; final boolean big,flying,tail; final float range; boolean dead=false; final float size;
+    Enemy(float x,int hp,boolean big,float range,float size){this(x,hp,big,range,size,GROUND);}
+    Enemy(float x,int hp,boolean big,float range,float size,int type){this.x=x;this.hp=hp;this.maxHp=hp;this.big=big;this.range=range;this.phase=x*.004f;this.size=size;this.type=type;this.flying=type==FLYING;this.tail=type==TAIL;}
 }
 final class Hazard {
     final float x,size;final int type;

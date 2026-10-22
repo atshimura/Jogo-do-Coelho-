@@ -1,6 +1,6 @@
 # Coelhitos — especificação funcional
 
-**Versão:** 1.5 — 21/10/2026
+**Versão:** 1.6 — 22/10/2026
 **Escopo inicial:** protótipo Android com a primeira fase completa.
 
 ## Conceito
@@ -17,7 +17,8 @@ Jogo de plataforma 2D lateral para celular Android, sempre em orientação horiz
 
 ## Primeira fase
 
-- A fase inicial é uma planície com grama, poucas árvores, morros e trechos de subida; a forma do terreno também afeta o movimento e as colisões.
+- A fase inicial é uma planície gramada com morros arredondados e duas subidas retas mais íngremes; o relevo afeta a altura do personagem, inimigos, objetos e colisões. O cenário tem camadas, sombras, luz suave e vegetação volumétrica para combinar com o acabamento macio e tridimensional do coelho.
+- A fase distribui ao longo do caminho pelo menos 24 inimigos: criaturas terrestres, algumas com cauda móvel, e inimigos voadores que usam cachecol. As criaturas terrestres mantêm as patas apoiadas no chão, com movimento e piscadas; as voadoras oscilam no ar.
 - O jogador deve levar aproximadamente 3 minutos para chegar ao portal no ritmo normal.
 - A fase contém exatamente 5 baús. Tocar em um baú concede um poder aleatório.
 - Há 5 cenouras disponíveis para coleta no começo da fase; outras cenouras aparecem pelo caminho. Cada cenoura coletada dá um disparo.
@@ -39,6 +40,7 @@ Jogo de plataforma 2D lateral para celular Android, sempre em orientação horiz
 - Raio ativa automaticamente ao ser encontrado: por 8 segundos, o coelho corre mais rápido e atropela inimigos à frente.
 - Supersalto aumenta a altura e a distância do pulo por 20 segundos.
 - Com a direcional para a esquerda ou direita, o botão de pulo dá um salto frontal ampliado o suficiente para superar espinhos, fogo e inimigos quando acionado no momento certo. A colisão acontece ao nível do chão; o salto evita o dano enquanto o coelho passa acima do perigo.
+- O corpo do coelho colide com a área visível de inimigos e obstáculos: um contato bloqueia seu avanço e aplica a regra de dano já definida. Saltar acima da área de colisão continua permitindo passar sem dano.
 
 ## Poderes
 

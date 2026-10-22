@@ -20,6 +20,7 @@ Este arquivo acompanha a implementação em etapas, conforme solicitado. Cada et
 | 12 | Corrigir multitoque e integrar arte aprovada dos inimigos/obstáculos | Concluída (0.3.0) |
 | 13 | Ajustar poderes, adicionar Supersalto e garantir evasão com salto cronometrado | Concluída (0.4.0) |
 | 14 | Tornar natural a aproximação e entrada do coelho no portal | Concluída (0.4.1) |
+| 15 | Redesenhar o cenário, diversificar inimigos, enriquecer o relevo e corrigir colisões | Em validação (0.5.0) |
 
 ## Registro
 

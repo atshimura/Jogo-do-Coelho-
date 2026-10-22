@@ -20,7 +20,7 @@ Este arquivo acompanha a implementação em etapas, conforme solicitado. Cada et
 | 12 | Corrigir multitoque e integrar arte aprovada dos inimigos/obstáculos | Concluída (0.3.0) |
 | 13 | Ajustar poderes, adicionar Supersalto e garantir evasão com salto cronometrado | Concluída (0.4.0) |
 | 14 | Tornar natural a aproximação e entrada do coelho no portal | Concluída (0.4.1) |
-| 15 | Redesenhar o cenário, diversificar inimigos, enriquecer o relevo e corrigir colisões | Em validação (0.5.0) |
+| 15 | Redesenhar o cenário, diversificar inimigos, enriquecer o relevo e corrigir colisões | Concluída (0.5.0) |
 
 ## Registro
 
@@ -162,3 +162,12 @@ Este arquivo acompanha a implementação em etapas, conforme solicitado. Cada et
 - APK debug `Coelhitos-v0.4.1-debug.apk`, `versionCode 9`, `versionName 0.4.1`; SHA-256: `1b4520857f13fb54ec2057e6c8e0c4456ee4e17d0e6da8087c43eb0eb06c2c75`.
 - Artefato APK `Coelhitos-debug-apk` (`12389869066`, retenção de 30 dias) e evidência (`12390008829`, retenção de 14 dias), anexados à execução #40.
 - A duração completa da fase e a avaliação visual em aparelho físico permanecem para validação manual.
+
+### 22/10/2026 — etapa 15: cenário, inimigos e colisões (0.5.0)
+
+- Cenário redesenhado com morros em camadas, contornos e sombras suaves; decor ganhou volume e detalhes no mesmo estilo macio do coelho. A planície inclui subidas retas íngremes.
+- Fase ampliada para 24 inimigos: 18 terrestres e 6 voadores. Os terrestres seguem o terreno com patas apoiadas e animação; alguns têm cauda que balança. Os voadores usam cachecol.
+- Colisões agora bloqueiam a passagem e aplicam a perda prevista de poder/vida; saltos direcionais cronometrados permitem superar perigos e inimigos.
+- GitHub Actions [execução #44](https://github.com/atshimura/Jogo-do-Coelho-/actions/runs/39808475411) concluída com sucesso. Build Gradle e 12 testes instrumentados passaram em emulador Android API 35; incluídos testes de composição do nível, subida reta, colisões bloqueantes e evasão por salto.
+- APK `Coelhitos-v0.5.0-debug.apk`, `versionCode 10`, `versionName 0.5.0`; SHA-256: `4040aa1b5381cd4c99b6e256423b10b039d5ad2c1eda42ffc5a6a532171c9e89`.
+- Artefato `Coelhitos-debug-apk` (`12438762708`, retenção de 30 dias) e evidência `Coelhitos-emulator-evidence` (`12439206467`, retenção de 14 dias), anexados à execução #44.

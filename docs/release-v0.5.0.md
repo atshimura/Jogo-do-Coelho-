@@ -14,4 +14,8 @@ As áreas de colisão seguem melhor os sprites de inimigos e obstáculos. Ao toc
 
 ## Validação
 
-Dois testes instrumentados novos verificam os tipos e a quantidade de inimigos, a subida reta e as colisões bloqueantes com inimigo e espinho. Os resultados, o APK e o SHA-256 serão registrados após a execução do CI.
+A execução [#44](https://github.com/atshimura/Jogo-do-Coelho-/actions/runs/39808475411) passou no GitHub Actions: build Gradle e 12 testes instrumentados em emulador Android API 35. Foram exercitados os controles, evasão cronometrada, subida, composição de inimigos e colisões bloqueantes. O Logcat não registrou exceção fatal.
+
+APK debug `Coelhitos-v0.5.0-debug.apk`, `versionCode 10`, `versionName 0.5.0`; SHA-256: `4040aa1b5381cd4c99b6e256423b10b039d5ad2c1eda42ffc5a6a532171c9e89`.
+
+Artefato `Coelhitos-debug-apk` (`12438762708`, retenção de 30 dias) e evidência `Coelhitos-emulator-evidence` (`12439206467`, retenção de 14 dias), anexados à execução #44.

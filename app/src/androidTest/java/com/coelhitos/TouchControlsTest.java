@@ -83,13 +83,13 @@ public final class TouchControlsTest {
         pointerDownSecond(1,1075,612,0,80,612);
         assertTrue(fieldBoolean("leftHeld"));
         assertTrue(fieldBoolean("actionHeld"));
-        SystemClock.sleep(120);
+        SystemClock.sleep(240);
         float during=fieldFloat("playerX");
         assertTrue("holding AÇÃO with left movement must keep running left: before="+before+" after="+during,during<before);
         pointerUpSecond(1,1075,612,0,80,612);
         assertEquals("shot must use the leftward movement direction",-1f,fieldFloat("lastShotDirection"),0f);
         assertTrue("releasing AÇÃO must leave joystick movement active",fieldBoolean("leftHeld"));
-        SystemClock.sleep(120);
+        SystemClock.sleep(240);
         assertTrue("movement must continue after the shot",fieldFloat("playerX")<during);
         pointerUp(0,80,612);
     }
@@ -102,13 +102,13 @@ public final class TouchControlsTest {
         float before=fieldFloat("playerX");
         pointerDownSecond(1,1075,612,0,180,612);
         assertTrue(fieldBoolean("rightHeld"));
-        SystemClock.sleep(120);
+        SystemClock.sleep(240);
         float during=fieldFloat("playerX");
         assertTrue("holding AÇÃO with right movement must keep running right",during>before);
         pointerUpSecond(1,1075,612,0,180,612);
         assertEquals("shot must use the rightward movement direction",1f,fieldFloat("lastShotDirection"),0f);
         assertTrue("releasing AÇÃO must leave joystick movement active",fieldBoolean("rightHeld"));
-        SystemClock.sleep(120);
+        SystemClock.sleep(240);
         assertTrue("movement must continue after the shot",fieldFloat("playerX")>during);
         pointerUp(0,180,612);
     }
@@ -151,7 +151,7 @@ public final class TouchControlsTest {
         pointerDownSecond(1,1203,612,0,180,612);
         assertTrue("Supersalto must increase forward travel",fieldFloat("jumpForwardSpeed")>fieldFloat("normalSpeed")*1.8f);
         Method impulse=GameView.class.getDeclaredMethod("jumpImpulse",float.class);impulse.setAccessible(true);
-        assertEquals("Supersalto must increase jump height",game.getHeight()*2f,(Float)impulse.invoke(game,1f),.1f);
+        assertEquals("Supersalto must increase jump height",game.getHeight()*2.55f,(Float)impulse.invoke(game,1f),.1f);
         pointerUpSecond(1,1203,612,0,180,612);
         pointerUp(0,180,612);
         SystemClock.sleep(220);
@@ -238,8 +238,8 @@ public final class TouchControlsTest {
                 float target=fieldFloat("levelLength")*.31f;
                 float size=enemy?(hp>1?136f:98f):164f;
                 float radius=enemy?fieldFloat("bunnyW")*.65f:size*.5f+fieldFloat("bunnyW")*.35f;
-                float speed=fieldFloat("normalSpeed")*1.55f;
-                setField("playerX",target-radius-speed*.38f-(enemy?0:fieldFloat("bunnyW")*.5f));
+                float speed=fieldFloat("normalSpeed")*1.95f;
+                setField("playerX",target-radius-speed*.40f-(enemy?0:fieldFloat("bunnyW")*.5f));
                 setField("onGround",true);setField("vy",0f);setField("jumpForwardSpeed",0f);
                 setField("hitCooldown",0f);setField("hearts",3);setField("power",0);setField("powerTime",0f);
                 if(enemy)((ArrayList<Enemy>)field("enemies")).add(new Enemy(target,hp,hp>1,0f,size));

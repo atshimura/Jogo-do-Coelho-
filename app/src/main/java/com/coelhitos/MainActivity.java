@@ -290,12 +290,12 @@ final class GameView extends View {
         // botão for apertado pouco antes de tocar o chão.
         jumpBufferTime=0;
         if(dir!=0) facingRight=dir>0;
-        float jumpForwardMultiplier=power==SUPER_JUMP?1.85f:1.55f;
+        float jumpForwardMultiplier=power==SUPER_JUMP?2.15f:1.95f;
         jumpForwardSpeed=normalSpeed*jumpForwardMultiplier*dir;
         Log.d("CoelhitosInput","jump dir="+(int)dir+" source="+source);
         vy=-jumpImpulse(dir); onGround=false; audio.effect(6);
     }
-    private float jumpImpulse(float dir) { return power==SUPER_JUMP?h*2f:(dir==0?h*1.47f:h*1.8f); }
+    private float jumpImpulse(float dir) { return power==SUPER_JUMP?h*2.55f:(dir==0?h*1.47f:h*2.4f); }
     private void say(String s) { notice=s; noticeTime=1.25f; }
     private void hurt() {
         if(hitCooldown>0 || state!=1)return;

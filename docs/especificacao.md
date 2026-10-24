@@ -13,7 +13,7 @@ Jogo de plataforma 2D lateral para celular Android, sempre em orientação horiz
 - O coelho pode escolher entre várias cores.
 - O personagem poderá encontrar cabanas abandonadas e explorá-las para achar armaduras, poderes e itens.
 - Cenouras representam a moeda do jogo para compras de armaduras e cores. Na primeira fase elas também funcionam como munição de uso único. A relação entre munição e saldo de compras fica para a especificação do sistema de loja; a primeira fase não inclui loja.
-- A primeira versão implementa somente a fase inicial descrita abaixo. Os outros mundos, as cabanas, as armaduras, a seleção de cores e a loja ficam no backlog posterior.
+- O baseline publicado v0.5.2 implementa somente a primeira fase. A fase 2 está aprovada para planejamento e desenvolvimento, descrita nesta especificação e em docs/fase-2-planejamento-e-handoff.md. Mundos posteriores à fase 2, cabanas, armaduras, seleção de cores e loja permanecem no backlog.
 
 ## Primeira fase
 
@@ -92,9 +92,9 @@ O jogo terá trilha musical original em loop e efeitos originais para caminhada,
 - O projétil de Fogo tem corpo laranja, núcleo amarelo, halo e rastro; a Pena tem haste e barbas desenhadas para que os dois poderes sejam fáceis de distinguir.
 - O mascote em jogo deve manter a mesma identidade visual do coelho do ícone: pelagem branca fofa, olhos castanhos grandes, orelhas rosadas e cenoura. As poses de repouso e salto preservam o perfil lateral e o movimento em pares das patas traseiras.
 
-## Backlog após a primeira fase
+## Backlog posterior à fase 2
 
-- Criar os próximos mundos e portais, com ambientes, plantas, obstáculos e inimigos variados.
+- Criar mundos e portais posteriores, com ambientes, plantas, obstáculos e inimigos variados.
 - Adicionar cabanas exploráveis, armaduras e seleção de cores.
 - Definir a loja e como separar ou conciliar cenouras usadas como munição e como moeda.
 
@@ -103,5 +103,5 @@ O jogo terá trilha musical original em loop e efeitos originais para caminhada,
 - O botão de ação escolhe automaticamente entre corrida (mantido pressionado com direção) e disparo (toque curto e soltura).
 - A ação de Espinho, Pena e Fogo ocorre ao disparar; Raio ativa no momento da coleta.
 - A primeira fase terá cinco cenouras colocadas perto do começo e outras recompensas de coração ao longo do percurso, sem alterar a quantidade inicial.
-- Os desenhos serão feitos no Canvas, sem imagens externas, para manter o APK leve e a direção visual original.
+- O mundo é renderizado em Canvas e pode combinar formas desenhadas no código com sprites originais incluídos no app; nenhum recurso visual é baixado da rede durante o jogo.
 

@@ -23,12 +23,12 @@ Este arquivo acompanha a implementação em etapas, conforme solicitado. Cada et
 | 15 | Redesenhar o cenário, diversificar inimigos, enriquecer o relevo e corrigir colisões | Concluída (0.5.0) |
 | 16 | Ajustar altura do salto, diferenciar inimigos, animar a caminhada e ampliar a complexidade da fase | Concluída (0.5.2) |
 | 17 | Consolidar a especificação da fase 2 e o pacote de handoff técnico | Concluída (planejamento; sem implementação) |
-| 18 | Desenhar e implementar a caverna de cristais e o percurso de cerca de 3 minutos | Pendente |
-| 19 | Implementar buracos, animação de queda, perda de coração e retorno seguro | Pendente |
-| 20 | Integrar três inimigos aprovados, animações naturais e projétil de semente evitável | Pendente |
-| 21 | Integrar progressão, poderes, coletáveis e portal da fase 2 | Pendente |
-| 22 | Testes de instrumentação, estabilidade, tempo da fase e ajustes visuais | Pendente |
-| 23 | Atualizar documentação de release e gerar APK da fase 2 | Pendente |
+| 18 | Desenhar e implementar a caverna de cristais e o percurso de cerca de 3 minutos | Concluída (0.6.0) |
+| 19 | Implementar buracos, animação de queda, perda de coração e retorno seguro | Concluída (0.6.0) |
+| 20 | Integrar três inimigos aprovados, animações naturais e projétil de semente evitável | Concluída (0.6.0) |
+| 21 | Integrar progressão, poderes, coletáveis e portal da fase 2 | Concluída (0.6.0) |
+| 22 | Testes de instrumentação, estabilidade, tempo da fase e ajustes visuais | Concluída no CI; tempo alvo requer confirmação em aparelho físico |
+| 23 | Atualizar documentação de release e gerar APK da fase 2 | Concluída (0.6.0) |
 
 ## Registro
 
@@ -203,3 +203,16 @@ Este arquivo acompanha a implementação em etapas, conforme solicitado. Cada et
 - Nenhum código ou APK foi alterado. Plano técnico em docs/fase-2-planejamento-e-handoff.md.
 - Próxima etapa: implementar cenário e topologia da fase 2, seguindo as etapas 18 a 23.
 
+
+
+
+### 24/10/2026 — implementação da fase 2 (0.6.0)
+
+- Concluída a caverna colorida com cristais luminosos, piso com subidas/descidas e HUD identificado como fase 2. A fase tem seu próprio arranjo de pickups, perigos e inimigos.
+- O portal da fase 1 preserva corações, poder e munição e leva à caverna; o portal da fase 2 conclui a jornada atual.
+- Implementados 5 baús, cenouras e corações, espinhos/fogo e cinco buracos. Cair em um vão anima a queda, desconta exatamente um coração e retorna a piso seguro; a regra é direta mesmo com poder equipado.
+- Integrados os conceitos aprovados: planta terrestre que antecipa e dispara sementes, besouro rochoso baixo com ciclo de patas e mariposa lilás de quatro asas animadas. O pulo evita a semente.
+- Adicionada trilha sintetizada própria para a caverna, além de efeitos de disparo de semente e queda.
+- Testes de instrumentação adicionados para composição da fase, rampas/pits, continuidade entre fases, queda com cobrança única e retorno seguro, projétil evitável, ciclo de asas e controles. O relatório do CI mostra **18/18 testes passando**. A primeira execução do workflow ficou vermelha apenas porque a etapa de validação ainda procurava o texto `OK (13 tests)`; a contagem passou para uma verificação genérica de resultado antes de gerar o release.
+- O alvo de aproximadamente 3 minutos orientou o comprimento/velocidade do percurso, mas o CI não simula uma jogada normal inteira. A duração final ainda deve ser medida em aparelho físico e ajustada se necessário.
+- `versionCode 13`, `versionName 0.6.0`. APK debug e SHA-256 serão registrados abaixo após o workflow atualizado concluir com sucesso.

@@ -1,7 +1,7 @@
 # Coelhitos — especificação funcional
 
 **Versão:** 1.7 — 24/10/2026
-**Estado:** fase 1 implementada (v0.5.2); fase 2 especificada e aprovada para planejamento, ainda sem implementação.
+**Estado:** fases 1 e 2 implementadas (v0.6.0); medir o tempo da fase 2 em aparelho físico permanece pendente.
 
 ## Conceito
 
@@ -25,7 +25,7 @@ Jogo de plataforma 2D lateral para celular Android, sempre em orientação horiz
 - Obstáculos da primeira fase: espinhos e fogo. Buracos ficam reservados a fases futuras.
 - O coelho tem aproximadamente um quarto da altura útil da tela.
 
-## Segunda fase — decisões aprovadas para planejamento (ainda não implementada)
+## Segunda fase — implementada (v0.6.0)
 
 A fase 2 foi aprovada em 24/10/2026. O roteiro técnico e os pontos ainda em aberto estão em [fase-2-planejamento-e-handoff.md](fase-2-planejamento-e-handoff.md).
 
@@ -104,4 +104,5 @@ O jogo terá trilha musical original em loop e efeitos originais para caminhada,
 - A ação de Espinho, Pena e Fogo ocorre ao disparar; Raio ativa no momento da coleta.
 - A primeira fase terá cinco cenouras colocadas perto do começo e outras recompensas de coração ao longo do percurso, sem alterar a quantidade inicial.
 - O mundo é renderizado em Canvas e pode combinar formas desenhadas no código com sprites originais incluídos no app; nenhum recurso visual é baixado da rede durante o jogo.
+
 

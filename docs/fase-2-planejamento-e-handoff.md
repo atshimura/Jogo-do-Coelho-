@@ -1,9 +1,9 @@
 # Fase 2 — planejamento e handoff
 
 **Atualizado:** 24/10/2026  
-**Estado:** decisões de produto aprovadas; implementação ainda não iniciada.  
+**Estado:** implementada em 0.6.0; testes instrumentados concluídos. A duração de 3 minutos ainda requer medição manual em aparelho físico.  
 **Repositório:** https://github.com/atshimura/Jogo-do-Coelho-  
-**Baseline:** Coelhitos 0.5.2, versionCode 12.
+**Baseline de implementação:** Coelhitos 0.5.2, versionCode 12. **Versão da fase 2:** 0.6.0, versionCode 13.
 
 Este documento permite retomar o trabalho sem depender do histórico da conversa. Decisões confirmadas estão separadas das escolhas técnicas ainda necessárias.
 
@@ -147,3 +147,4 @@ Registrar resultados em docs/andamento.md e concluir cada etapa antes da próxim
 - APK baseline Coelhitos-v0.5.2-debug.apk; SHA-256 8a1904be5ec82eea12111d2351cf07da080cda443f8bae3e2258dc3e9c3b6ed8.
 - Build: clonar https://github.com/atshimura/Jogo-do-Coelho-.git; requer JDK 17, Android SDK Platform 35 e Gradle 8.9 ou compatível. Rodar gradle assembleDebug; testes locais com gradle connectedAndroidTest e emulador/dispositivo. Workflow android.yml é gate obrigatório.
 - Alteração documental não muda o APK nem o hash da baseline.
+

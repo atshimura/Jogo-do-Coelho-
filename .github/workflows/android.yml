@@ -57,7 +57,7 @@ jobs:
             adb install -r app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
             adb logcat -c
             adb shell am instrument -w -r com.coelhitos.test/androidx.test.runner.AndroidJUnitRunner > emulator-evidence/multitouch-tests.txt
-            grep -q "OK (13 tests)" emulator-evidence/multitouch-tests.txt
+            grep -Eq 'OK \([0-9]+ tests\)' emulator-evidence/multitouch-tests.txt
             adb shell am force-stop com.coelhitos
             adb shell am start -W -n com.coelhitos/.MainActivity
             sleep 3
@@ -109,4 +109,5 @@ jobs:
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 30
+
 

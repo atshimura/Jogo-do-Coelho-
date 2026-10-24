@@ -1,6 +1,6 @@
 # Coelhitos
 
-Coelhitos é um jogo de plataforma 2D para Android, em orientação horizontal. O primeiro marco entrega uma fase jogável numa planície gramada, com controles por toque, cenouras, baús de poderes, inimigos, corações e portal de saída.
+Coelhitos é um jogo de plataforma 2D para Android, em orientação horizontal. A versão 0.6.0 contém duas fases jogáveis: uma planície gramada e uma caverna colorida de cristais, com controles por toque, poderes, inimigos, corações, buracos e portais.
 
 ## Construir
 
@@ -15,15 +15,16 @@ APK de depuração: `app/build/outputs/apk/debug/app-debug.apk`.
 ## Documentação
 
 - [Especificação funcional](docs/especificacao.md)
-- [Fase 2 — planejamento e handoff](docs/fase-2-planejamento-e-handoff.md)
 - [Etapas e andamento](docs/andamento.md)
 - [Notas da versão 0.1.2](docs/release-v0.1.2.md)
 - [Notas da versão 0.1.3](docs/release-v0.1.3.md)
 - [Notas da versão 0.2.0](docs/release-v0.2.0.md)
 - [Notas da versão 0.2.1](docs/release-v0.2.1.md)
 - [Notas da versão 0.3.0](docs/release-v0.3.0.md)
+- [Notas da versão 0.6.0](docs/release-v0.6.0.md)
+- [Handoff técnico da fase 2](docs/fase-2-planejamento-e-handoff.md)
 - [Notas da versão 0.5.0](docs/release-v0.5.0.md)
-- [Notas da versão 0.5.2](docs/release-v0.5.2.md)
+- [Notas da versão 0.5.1](docs/release-v0.5.1.md)
 - [Plano de controles e arte v0.3.0](docs/plano-controles-e-arte-v0.3.0.md)
 - [Notas da versão 0.1.1](docs/release-v0.1.1.md)
 - [Notas da versão 0.1.0](docs/release-v0.1.0.md)

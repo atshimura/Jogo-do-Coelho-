@@ -170,12 +170,16 @@ public final class TouchControlsTest {
         clearAndJumpOver(false,2,0);
         clearAndJumpOver(true,0,1);
         clearAndJumpOver(true,0,3);
+        clearPitWithJump();
     }
 
     @Test
     public void testRabbitWalksIntoPortalBeforeLevelComplete() throws Exception {
         InstrumentationRegistry.getInstrumentation().runOnMainSync(()->{
             try {
+                setField("levelNumber",2);
+                Method reset=GameView.class.getDeclaredMethod("resetLevel");reset.setAccessible(true);reset.invoke(game);
+                setField("state",1);
                 float portalCenter=fieldFloat("levelLength")-game.getWidth()*.08f;
                 float bunnyW=fieldFloat("bunnyW");
                 setField("playerX",portalCenter-bunnyW*1.25f);
@@ -194,6 +198,120 @@ public final class TouchControlsTest {
         assertTrue("rabbit should walk forward into the portal",fieldFloat("playerX")>start);
         assertEquals("level completion comes after portal entry",2,fieldInt("state"));
         assertFalse("touch movement is cleared during entry",fieldBoolean("rightHeld"));
+    }
+
+    @Test
+    public void testFirstPortalLoadsCaveAndPreservesRunState() throws Exception {
+        setField("hearts",2);setField("carrots",4);setField("power",4);setField("powerTime",0f);
+        Method enter=GameView.class.getDeclaredMethod("advanceToCave");enter.setAccessible(true);
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(()->{
+            try { enter.invoke(game); } catch(Exception e) { throw new RuntimeException(e); }
+        });
+        assertEquals(2,fieldInt("levelNumber"));
+        assertEquals(1,fieldInt("state"));
+        assertEquals("phase transition keeps remaining hearts",2,fieldInt("hearts"));
+        assertEquals("phase transition keeps carrot ammunition",4,fieldInt("carrots"));
+        assertEquals("phase transition keeps the equipped power",4,fieldInt("power"));
+    }
+
+    @Test
+    public void testCaveHasApprovedEnemiesAndFiveFallPits() throws Exception {
+        Method reset=GameView.class.getDeclaredMethod("resetLevel");reset.setAccessible(true);
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(()->{
+            try { setField("levelNumber",2);reset.invoke(game);setField("state",1); } catch(Exception e) { throw new RuntimeException(e); }
+        });
+        int plants=0,beetles=0,moths=0,pits=0;
+        for(Object v:(ArrayList<?>)field("enemies")){Enemy e=(Enemy)v;if(e.type==Enemy.PLANT_SHOOTER)plants++;if(e.type==Enemy.BEETLE)beetles++;if(e.type==Enemy.MOTH)moths++;}
+        for(Object v:(ArrayList<?>)field("hazards"))if(((Hazard)v).type==1)pits++;
+        assertTrue("cave must contain plant seed shooters",plants>=5);
+        assertTrue("cave must contain armored beetles",beetles>=5);
+        assertTrue("cave must contain flying moths",moths>=5);
+        assertEquals("five pits are placed in the cave route",5,pits);
+        Method terrain=GameView.class.getDeclaredMethod("terrainY",float.class);terrain.setAccessible(true);
+        float len=fieldFloat("levelLength"),height=game.getHeight();
+        float before=(Float)terrain.invoke(game,len*.30f),after=(Float)terrain.invoke(game,len*.312f);
+        assertTrue("cave path contains a climb and descent",Math.abs(after-before)>height*.10f);
+    }
+
+    @Test
+    public void testPitFallAnimatesChargesOneHeartAndReturnsBeforeHole() throws Exception {
+        Method reset=GameView.class.getDeclaredMethod("resetLevel");reset.setAccessible(true);
+        Method begin=GameView.class.getDeclaredMethod("beginFall");begin.setAccessible(true);
+        Method step=GameView.class.getDeclaredMethod("updateFall",float.class);step.setAccessible(true);
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(()->{
+            try {
+                setField("levelNumber",2);reset.invoke(game);setField("state",1);
+                ArrayList<Hazard> hazards=(ArrayList<Hazard>)field("hazards");hazards.clear();
+                float px=fieldFloat("playerX")+300*fieldFloat("unit");
+                Hazard pit=new Hazard(px,1,80*fieldFloat("unit"));hazards.add(pit);
+                setField("playerX",px-fieldFloat("bunnyW")*.52f);
+                Method terrain=GameView.class.getDeclaredMethod("terrainY",float.class);terrain.setAccessible(true);
+                setField("playerY",((Float)terrain.invoke(game,px))-fieldFloat("bunnyH"));
+                setField("onGround",true);setField("hearts",3);setField("power",4);setField("hitCooldown",0f);
+                begin.invoke(game);
+                assertEquals("pit entry begins a dedicated fall state",4,fieldInt("state"));
+                assertTrue("fall has an animation timer",fieldFloat("fallTime")==0f);
+                for(int i=0;i<8;i++)step.invoke(game,.12f);
+            } catch(Exception e) { throw new RuntimeException(e); }
+        });
+        assertEquals("fall costs exactly one heart",2,fieldInt("hearts"));
+        assertEquals("fall does not silently replace the explicit heart penalty with power loss",4,fieldInt("power"));
+        assertEquals("rabbit safely returns to gameplay",1,fieldInt("state"));
+        float pitX=((Hazard)((ArrayList<?>)field("hazards")).get(0)).x;
+        assertTrue("respawn is before the same pit",fieldFloat("playerX")+fieldFloat("bunnyW")*.52f<pitX-((Hazard)((ArrayList<?>)field("hazards")).get(0)).size*.47f);
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(()->{
+            try { step.invoke(game,.9f); } catch(Exception e) { throw new RuntimeException(e); }
+        });
+        assertEquals("completed fall cannot charge a second heart",2,fieldInt("hearts"));
+    }
+
+    @Test
+    public void testPlantShooterCreatesASeedProjectileAndJumpCanDodgeIt() throws Exception {
+        Method reset=GameView.class.getDeclaredMethod("resetLevel");reset.setAccessible(true);
+        Method update=GameView.class.getDeclaredMethod("update",float.class);update.setAccessible(true);
+        Method updateShots=GameView.class.getDeclaredMethod("updateEnemyShots",float.class);updateShots.setAccessible(true);
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(()->{
+            try {
+                setField("levelNumber",2);reset.invoke(game);setField("state",1);
+                ((ArrayList<?>)field("enemies")).clear();((ArrayList<?>)field("hazards")).clear();((ArrayList<?>)field("pickups")).clear();
+                float px=fieldFloat("levelLength")*.42f;
+                setField("playerX",px);setField("camera",Math.max(0,px-game.getWidth()*.28f));
+                Enemy shooter=new Enemy(px+250*fieldFloat("unit"),1,false,0,55*fieldFloat("unit"),Enemy.PLANT_SHOOTER);
+                shooter.attackTime=.01f;((ArrayList<Enemy>)field("enemies")).add(shooter);
+                update.invoke(game,.02f);
+                assertTrue("plant shooter launches a seed",((ArrayList<?>)field("enemyShots")).size()>0);
+                ((ArrayList<?>)field("enemyShots")).clear();
+                Method terrain=GameView.class.getDeclaredMethod("terrainY",float.class);terrain.setAccessible(true);
+                float floor=(Float)terrain.invoke(game,px),bh=fieldFloat("bunnyH"),bw=fieldFloat("bunnyW");
+                setField("playerY",floor-bh-game.getHeight()*.3f);setField("onGround",false);
+                ((ArrayList<Shot>)field("enemyShots")).add(new Shot(px+bw*.5f,floor-bh*.5f,0,0,1,5,0));
+                setField("hearts",3);setField("power",0);setField("hitCooldown",0f);
+                updateShots.invoke(game,.016f);
+                assertEquals("jumping above the seed avoids damage",3,fieldInt("hearts"));
+                setField("playerY",floor-bh);setField("onGround",true);
+                ((ArrayList<Shot>)field("enemyShots")).add(new Shot(px+bw*.5f,floor-bh*.5f,0,0,1,5,0));
+                updateShots.invoke(game,.016f);
+                assertEquals("seed hits at ground height",2,fieldInt("hearts"));
+            } catch(Exception e) { throw new RuntimeException(e); }
+        });
+    }
+
+    @Test
+    public void testMothWingCycleChangesAcrossFrames() throws Exception {
+        Method moth=GameView.class.getDeclaredMethod("drawMoth",android.graphics.Canvas.class,Enemy.class,float.class,float.class,float.class);moth.setAccessible(true);
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(()->{
+            try {
+                android.graphics.Bitmap first=android.graphics.Bitmap.createBitmap(180,150,android.graphics.Bitmap.Config.ARGB_8888);
+                android.graphics.Bitmap second=android.graphics.Bitmap.createBitmap(180,150,android.graphics.Bitmap.Config.ARGB_8888);
+                Enemy enemy=new Enemy(100,1,false,0,55,Enemy.MOTH);
+                setField("animTime",0f);moth.invoke(game,new android.graphics.Canvas(first),enemy,90f,120f,0f);
+                setField("animTime",.14f);moth.invoke(game,new android.graphics.Canvas(second),enemy,90f,120f,.8f);
+                boolean changed=false;
+                for(int y=10;y<95&&!changed;y++)for(int x=15;x<165;x++)if(first.getPixel(x,y)!=second.getPixel(x,y)){changed=true;break;}
+                assertTrue("moth wings change visibly through the flap cycle",changed);
+                first.recycle();second.recycle();
+            } catch(Exception e) { throw new RuntimeException(e); }
+        });
     }
 
     @Test
@@ -291,6 +409,34 @@ public final class TouchControlsTest {
         assertEquals("timed forward jump must clear "+(enemy?"enemy":"hazard type="+type),3,hearts);
     }
 
+    private void clearPitWithJump() throws Exception {
+        Method terrain=GameView.class.getDeclaredMethod("terrainY",float.class);terrain.setAccessible(true);
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(()->{
+            try {
+                setField("levelNumber",2);
+                Method reset=GameView.class.getDeclaredMethod("resetLevel");reset.setAccessible(true);reset.invoke(game);
+                setField("state",1);
+                ((ArrayList<?>)field("enemies")).clear();((ArrayList<?>)field("hazards")).clear();
+                ((ArrayList<?>)field("pickups")).clear();((ArrayList<?>)field("enemyShots")).clear();
+                float target=fieldFloat("levelLength")*.43f,size=78*fieldFloat("unit"),bunnyW=fieldFloat("bunnyW");
+                float speed=fieldFloat("normalSpeed")*1.55f;
+                setField("playerX",target-size*.47f-bunnyW*.52f-speed*.50f);
+                setField("playerY",((Float)terrain.invoke(game,fieldFloat("playerX")))-fieldFloat("bunnyH"));
+                setField("camera",Math.max(0,fieldFloat("playerX")-game.getWidth()*.28f));
+                setField("onGround",true);setField("vy",0f);setField("jumpForwardSpeed",0f);
+                setField("hearts",3);setField("power",0);setField("hitCooldown",0f);
+                ((ArrayList<Hazard>)field("hazards")).add(new Hazard(target,1,size));
+            } catch(Exception e) { throw new RuntimeException(e); }
+        });
+        SystemClock.sleep(60);
+        pointerDown(0,180,612);pointerDownSecond(1,1203,612,0,180,612);
+        SystemClock.sleep(1000);
+        int hearts=fieldInt("hearts");
+        pointerUpSecond(1,1203,612,0,180,612);pointerUp(0,180,612);
+        assertEquals("a timed jump can clear a cave pit without losing a heart",3,hearts);
+        assertEquals("the rabbit remains in the cave gameplay state",1,fieldInt("state"));
+    }
+
     private void tap(float x,float y) {
         pointerDown(0,x,y);
         pointerUp(0,x,y);
@@ -332,3 +478,4 @@ public final class TouchControlsTest {
         Field f=GameView.class.getDeclaredField(name);f.setAccessible(true);f.set(game,value);
     }
 }
+

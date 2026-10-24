@@ -20,8 +20,9 @@ A versão inclui testes instrumentados para controles, poderes, portal, progress
 
 - `versionCode`: 13
 - `versionName`: 0.6.0
-- Testes: pendente do workflow de release.
-- APK: pendente do workflow de release.
-- SHA-256: pendente.
+- Testes: 18 testes instrumentados passaram; smoke test no emulador passou, sem exceção fatal ou `ConcurrentModificationException`.
+- GitHub Actions: [execução #54](https://github.com/atshimura/Jogo-do-Coelho-/actions/runs/40100495114), conclusão `success`, Android Emulator API 35.
+- Artefato APK `Coelhitos-debug-apk`: ID `12563220098`, tamanho compactado 10,8 MB, retenção de 30 dias. Evidência `Coelhitos-emulator-evidence`: ID `12562946094`, retenção de 14 dias.
+- SHA-256 do APK: `8f9ebe72579aae83afbbb469c8dc80274b1ee10323b33f1ea616fb420e4dcf70`.
 
 A duração de cerca de três minutos é o alvo de design. O workflow valida os sistemas e o trecho de jogo automatizado, mas uma jogada completa deve ser cronometrada em aparelho físico para confirmar o alvo.

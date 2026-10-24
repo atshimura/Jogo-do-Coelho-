@@ -249,10 +249,10 @@ final class GameView extends View {
                 e.attackTime-=dt;
                 float dx=playerX-e.x;
                 if(e.attackTime<=0 && Math.abs(dx)<w*.82f && Math.abs(dx)>bunnyW*1.6f) {
-                    float dir=dx<0?-1:1;
-                    float sx=e.x+dir*e.size*.82f;
+                    float shotDir=dx<0?-1:1;
+                    float sx=e.x+shotDir*e.size*.82f;
                     float sy=enemyFeetY(e)-e.size*.68f;
-                    enemyShots.add(new Shot(sx,sy,dir*220*unit,0,1,5,0));
+                    enemyShots.add(new Shot(sx,sy,shotDir*220*unit,0,1,5,0));
                     e.attackTime=2.4f+(e.phase%1.1f);
                     audio.effect(17);
                 }

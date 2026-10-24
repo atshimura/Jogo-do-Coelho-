@@ -38,12 +38,60 @@ public final class TouchControlsTest {
             SystemClock.sleep(50);
         }
         assertNotNull("GameView was not laid out",game);
-        tap(640,360); // start the level
+        tap(game.getWidth()*.5f,game.getHeight()*.835f); // select the default phase and press JOGAR
     }
 
     @After public void tearDown() throws Exception {
         if (activity != null) InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> activity.finish());
         SystemClock.sleep(150);
+    }
+
+    @Test
+    public void testPhaseOneHasMoreScatteredCarrots() throws Exception {
+        ArrayList<?> pickups=(ArrayList<?>)field("pickups");
+        int carrots=0;float min=Float.MAX_VALUE,max=0;
+        for(Object item:pickups) {
+            Pickup pickup=(Pickup)item;
+            if(pickup.type==0) { carrots++;min=Math.min(min,pickup.x);max=Math.max(max,pickup.x); }
+        }
+        assertTrue("phase 1 should have at least twenty carrots to collect",carrots>=20);
+        assertTrue("carrots should be spread across almost the full route",max-min>fieldFloat("levelLength")*.85f);
+    }
+
+    @Test
+    public void testPhaseOneBirdsLeaveClearJumpLanesAtGroundHazards() throws Exception {
+        float minGap=Float.MAX_VALUE,len=fieldFloat("levelLength");
+        for(Object enemyObj:(ArrayList<?>)field("enemies")) {
+            Enemy enemy=(Enemy)enemyObj;
+            if(!enemy.flying)continue;
+            for(Object hazardObj:(ArrayList<?>)field("hazards")) {
+                Hazard hazard=(Hazard)hazardObj;
+                if(hazard.type==1)continue;
+                minGap=Math.min(minGap,Math.abs(enemy.x-hazard.x));
+            }
+        }
+        assertTrue("flying enemies must not occupy the jump corridor of a ground obstacle",minGap>len*.025f);
+    }
+
+    @Test
+    public void testTitleCanSelectEitherPhaseAndGameplayHasHomeButton() throws Exception {
+        float width=game.getWidth(),height=game.getHeight();
+        tap(width*.95f,height*.24f);
+        assertEquals("INÍCIO returns the player to the title screen",0,fieldInt("state"));
+        tap(width*.72f,height*.67f);
+        assertEquals("phase 2 card selects the cave",2,fieldInt("selectedLevel"));
+        tap(width*.5f,height*.835f);
+        assertEquals("JOGAR starts the selected cave",2,fieldInt("levelNumber"));
+        assertEquals(1,fieldInt("state"));
+        Object audio=field("audio");
+        java.lang.reflect.Field theme=AudioEngine.class.getDeclaredField("caveTheme");theme.setAccessible(true);
+        assertTrue("cave selection activates its own music",theme.getBoolean(audio));
+        tap(width*.95f,height*.24f);
+        assertEquals("home remains available in the cave",0,fieldInt("state"));
+        tap(width*.30f,height*.67f);
+        tap(width*.5f,height*.835f);
+        assertEquals("phase 1 card starts the meadow",1,fieldInt("levelNumber"));
+        assertFalse("meadow selection restores phase 1 music",theme.getBoolean(audio));
     }
 
     @Test

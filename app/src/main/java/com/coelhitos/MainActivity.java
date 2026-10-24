@@ -59,7 +59,7 @@ final class GameView extends View {
     private float stepTimer;
     private float portalEntryTime, fallTime, fallStartX, fallStartY, fallTargetX;
     private int hearts = 3, carrots = 0, power = 0, state = 0, collectedChests = 0;
-    private int levelNumber = 1;
+    private int levelNumber = 1, selectedLevel = 1;
     private boolean onGround = true, leftHeld, rightHeld, upHeld, jumpHeld, actionHeld, facingRight = true, restartPending;
     private int stickPointer = -1, actionPointer = -1, jumpPointer = -1;
     private float stickX, stickY;
@@ -135,6 +135,9 @@ final class GameView extends View {
         if(levelNumber==2) { populateCaveLevel(); startMillis=System.currentTimeMillis(); return; }
         for(int i=0;i<5;i++) pickups.add(new Pickup(playerX+65*unit + i*112*unit, 0, 0));
         for(int i=0;i<5;i++) pickups.add(new Pickup(levelLength*(.12f+i*.17f), 0, 0));
+        // Mais cenouras distribuídas pela rota, sem substituir as cinco do início.
+        float[] extraCarrots={.035f,.16f,.225f,.285f,.35f,.41f,.475f,.535f,.60f,.665f,.73f,.795f,.86f,.93f};
+        for(float fraction:extraCarrots) pickups.add(new Pickup(levelLength*fraction,0,0));
         for(int i=0;i<3;i++) pickups.add(new Pickup(levelLength*(.24f+i*.25f), 1, 0));
         for(int i=0;i<5;i++) {
             float x=levelLength*(.1f+i*.19f);
@@ -146,10 +149,13 @@ final class GameView extends View {
             int type=i%7==3?Enemy.HORNED:(i%5==2?Enemy.TAIL:Enemy.GROUND);
             enemies.add(new Enemy(x,big?3:1,big,36*unit+(i%4)*14*unit,(big?68:49)*unit,type));
         }
-        for(int i=0;i<8;i++) {
-            float x=levelLength*(.105f+i*.112f);
+        // Aves posicionadas em corredores livres entre obstáculos para não
+        // bloquear o mesmo salto necessário para superar um perigo do chão.
+        float[] birdFractions={.096f,.222f,.348f,.474f,.600f,.726f,.852f,.945f};
+        for(int i=0;i<birdFractions.length;i++) {
+            float x=levelLength*birdFractions[i];
             boolean big=i==3;
-            enemies.add(new Enemy(x,big?3:1,big,45*unit+(i%3)*10*unit,(big?60:49)*unit,Enemy.FLYING));
+            enemies.add(new Enemy(x,big?3:1,big,38*unit+(i%3)*8*unit,(big?60:49)*unit,Enemy.FLYING));
         }
         for(int i=0;i<14;i++) {
             float x=levelLength*(.065f+i*.063f);
@@ -164,7 +170,45 @@ final class GameView extends View {
         startMillis=System.currentTimeMillis();
     }
 
-    private void beginGame() { levelNumber=1; resetLevel(); state=1; audio.setCaveTheme(false); audio.start(); }
+    private void beginGame() {
+        levelNumber=selectedLevel;
+        resetLevel();
+        state=1;
+        audio.setCaveTheme(levelNumber==2);
+        audio.start();
+    }
+
+    private void returnToTitle() {
+        selectedLevel=levelNumber;
+        state=0;
+        leftHeld=rightHeld=upHeld=jumpHeld=actionHeld=false;
+        stickPointer=actionPointer=jumpPointer=-1;
+        stickJumpWasDown=false;
+        audio.setCaveTheme(selectedLevel==2);
+        audio.start();
+    }
+
+    private void selectLevel(int level) {
+        selectedLevel=level==2?2:1;
+        audio.setCaveTheme(selectedLevel==2);
+        audio.start();
+    }
+
+    private boolean isMenuCard(float x,float y,int level) {
+        float top=h*.085f+184*unit, bottom=h*.085f+238*unit;
+        if(y<top||y>bottom)return false;
+        if(level==1)return x>=w*.105f+25*unit&&x<w*.5f-8*unit;
+        return x>w*.5f+8*unit&&x<=w*.895f-25*unit;
+    }
+
+    private boolean isPlayButton(float x,float y) {
+        float top=h*.085f+249*unit,bottom=h*.085f+294*unit;
+        return x>=w*.36f&&x<=w*.64f&&y>=top&&y<=bottom;
+    }
+
+    private boolean isHomeButton(float x,float y) {
+        return x>=w-91*unit&&x<=w-8*unit&&y>=h*.18f&&y<=h*.31f;
+    }
 
     private void populateCaveLevel() {
         for(int i=0;i<10;i++) pickups.add(new Pickup(levelLength*(.075f+i*.087f),0,0));
@@ -196,7 +240,7 @@ final class GameView extends View {
     private void advanceToCave() {
         int savedHearts=hearts,savedCarrots=carrots,savedPower=power;
         float savedPowerTime=powerTime;
-        levelNumber=2; resetLevel();
+        levelNumber=2; selectedLevel=2; resetLevel();
         hearts=savedHearts; carrots=savedCarrots; power=savedPower; powerTime=savedPowerTime;
         state=1; audio.setCaveTheme(true); audio.start(); say("Caverna dos Cristais");
     }
@@ -1046,29 +1090,37 @@ final class GameView extends View {
         p.setColor(Color.rgb(48,144,117));p.setTextSize(13*unit);c.drawRoundRect(l+25*unit,t+24*unit,l+134*unit,t+49*unit,12*unit,12*unit,p);
         p.setColor(Color.WHITE);p.setTextAlign(Paint.Align.CENTER);p.setTextSize(10*unit);c.drawText("AVENTURA 2D",l+79*unit,t+41*unit,p);
         p.setTextAlign(Paint.Align.LEFT);p.setColor(Color.rgb(48,68,76));p.setTextSize(49*unit);c.drawText("COELHITOS",l+25*unit,t+112*unit,p);
-        p.setColor(Color.rgb(76,126,116));p.setTextSize(20*unit);c.drawText("A Planície do Portal",l+28*unit,t+148*unit,p);
+        p.setColor(selectedLevel==2?Color.rgb(113,84,162):Color.rgb(76,126,116));p.setTextSize(20*unit);
+        c.drawText(selectedLevel==2?"A Caverna dos Cristais":"A Planície do Portal",l+28*unit,t+148*unit,p);
         p.setColor(Color.rgb(93,108,107));p.setTypeface(android.graphics.Typeface.create("sans-serif",0));p.setTextSize(14*unit);
-        c.drawText("Uma jornada de saltos, poderes e descobertas.",l+28*unit,t+179*unit,p);
-        // Insígnia decorativa do mundo inicial.
-        p.setColor(Color.rgb(255,210,112));c.drawCircle(r-106*unit,t+105*unit,57*unit,p);
+        c.drawText("Escolha uma fase para começar sua jornada.",l+28*unit,t+179*unit,p);
+        // Ilustração do mascote no selo do título.
+        p.setColor(selectedLevel==2?Color.rgb(203,180,247):Color.rgb(255,210,112));c.drawCircle(r-106*unit,t+105*unit,57*unit,p);
         p.setColor(Color.argb(80,76,95,67));c.drawOval(r-156*unit,t+177*unit,r-42*unit,t+189*unit,p);
         drawRabbit(c,r-147*unit,t+66*unit);
-        // CTA principal com hierarquia e contraste claros.
-        p.setColor(Color.argb(50,49,88,67));c.drawRoundRect(l+26*unit,t+205*unit,l+240*unit,t+267*unit,19*unit,19*unit,p);
-        p.setShader(new LinearGradient(l+26*unit,t+205*unit,l+26*unit,t+263*unit,Color.rgb(255,204,85),Color.rgb(248,158,52),Shader.TileMode.CLAMP));
-        c.drawRoundRect(l+26*unit,t+200*unit,l+240*unit,t+260*unit,18*unit,18*unit,p);p.setShader(null);
-        p.setColor(Color.rgb(94,62,40));p.setTextAlign(Paint.Align.CENTER);p.setTypeface(android.graphics.Typeface.create("sans-serif-rounded",1));p.setTextSize(21*unit);c.drawText("JOGAR",l+133*unit,t+237*unit,p);
-        p.setColor(Color.rgb(244,174,63));c.drawCircle(l+211*unit,t+230*unit,12*unit,p);p.setColor(Color.WHITE);Path arrow=new Path();arrow.moveTo(l+207*unit,t+224*unit);arrow.lineTo(l+215*unit,t+230*unit);arrow.lineTo(l+207*unit,t+236*unit);arrow.close();c.drawPath(arrow,p);
-        p.setTextAlign(Paint.Align.LEFT);p.setTypeface(android.graphics.Typeface.create("sans-serif",0));p.setTextSize(12*unit);p.setColor(Color.rgb(97,111,108));
-        c.drawText("Explore a planície e alcance o portal.",l+29*unit,t+294*unit,p);
-        float hintL=l+270*unit,hintR=r-25*unit,hintW=hintR-hintL;
-        float hx1=hintL+hintW/6f,hx2=hintL+hintW/2f,hx3=hintL+hintW*5f/6f;
-        p.setColor(Color.rgb(220,231,222));c.drawRoundRect(hintL,t+206*unit,hintR,t+269*unit,15*unit,15*unit,p);
-        p.setColor(Color.rgb(56,79,78));p.setTextSize(12*unit);p.setTypeface(android.graphics.Typeface.create("sans-serif-rounded",1));p.setTextAlign(Paint.Align.CENTER);
-        c.drawText("MOVER",hx1,t+230*unit,p);c.drawText("PULAR",hx2,t+230*unit,p);c.drawText("AÇÃO",hx3,t+230*unit,p);
-        p.setTypeface(android.graphics.Typeface.create("sans-serif",0));p.setTextSize(9*unit);p.setColor(Color.rgb(117,132,126));
-        c.drawText("Direcional",hx1,t+249*unit,p);c.drawText("Salta",hx2,t+249*unit,p);c.drawText("Toque atira",hx3,t+249*unit,p);
-        p.setTextAlign(Paint.Align.CENTER);p.setColor(Color.rgb(117,132,126));p.setTextSize(10*unit);c.drawText("TOQUE PARA COMEÇAR",w*.5f,b-13*unit,p);
+
+        float cardTop=t+184*unit,cardBottom=t+238*unit;
+        float left=l+25*unit,leftRight=w*.5f-8*unit,rightLeft=w*.5f+8*unit,right=r-25*unit;
+        int meadow=selectedLevel==1?Color.rgb(229,246,222):Color.rgb(244,248,242);
+        int cave=selectedLevel==2?Color.rgb(238,224,255):Color.rgb(244,248,250);
+        p.setColor(meadow);c.drawRoundRect(left,cardTop,leftRight,cardBottom,16*unit,16*unit,p);
+        p.setColor(cave);c.drawRoundRect(rightLeft,cardTop,right,cardBottom,16*unit,16*unit,p);
+        p.setStyle(Paint.Style.STROKE);p.setStrokeWidth((selectedLevel==1?2.5f:1f)*unit);p.setColor(selectedLevel==1?Color.rgb(70,158,101):Color.rgb(208,217,214));c.drawRoundRect(left,cardTop,leftRight,cardBottom,16*unit,16*unit,p);
+        p.setStrokeWidth((selectedLevel==2?2.5f:1f)*unit);p.setColor(selectedLevel==2?Color.rgb(133,93,195):Color.rgb(208,217,214));c.drawRoundRect(rightLeft,cardTop,right,cardBottom,16*unit,16*unit,p);p.setStyle(Paint.Style.FILL);
+        p.setTextAlign(Paint.Align.LEFT);p.setTypeface(android.graphics.Typeface.create("sans-serif-rounded",1));p.setTextSize(14*unit);
+        p.setColor(Color.rgb(56,91,67));c.drawText("FASE 1  •  PLANÍCIE",left+14*unit,cardTop+23*unit,p);
+        p.setTypeface(android.graphics.Typeface.create("sans-serif",0));p.setTextSize(10*unit);p.setColor(Color.rgb(92,112,98));c.drawText("Grama, morros e portal",left+14*unit,cardTop+41*unit,p);
+        p.setTypeface(android.graphics.Typeface.create("sans-serif-rounded",1));p.setTextSize(14*unit);p.setColor(Color.rgb(91,68,128));c.drawText("FASE 2  •  CAVERNA",rightLeft+14*unit,cardTop+23*unit,p);
+        p.setTypeface(android.graphics.Typeface.create("sans-serif",0));p.setTextSize(10*unit);p.setColor(Color.rgb(107,91,133));c.drawText("Cristais, rampas e buracos",rightLeft+14*unit,cardTop+41*unit,p);
+
+        float playL=w*.36f,playR=w*.64f,playTop=t+249*unit,playBottom=t+294*unit;
+        p.setColor(Color.argb(50,49,88,67));c.drawRoundRect(playL,playTop+4*unit,playR,playBottom+4*unit,17*unit,17*unit,p);
+        p.setShader(new LinearGradient(playL,playTop,playL,playBottom,Color.rgb(255,204,85),Color.rgb(248,158,52),Shader.TileMode.CLAMP));
+        c.drawRoundRect(playL,playTop,playR,playBottom,17*unit,17*unit,p);p.setShader(null);
+        p.setColor(Color.rgb(94,62,40));p.setTextAlign(Paint.Align.CENTER);p.setTypeface(android.graphics.Typeface.create("sans-serif-rounded",1));p.setTextSize(19*unit);
+        c.drawText("JOGAR FASE "+selectedLevel,w*.5f,(playTop+playBottom)*.5f+7*unit,p);
+        p.setColor(Color.rgb(117,126,120));p.setTypeface(android.graphics.Typeface.create("sans-serif",0));p.setTextSize(9*unit);
+        c.drawText("Toque em uma fase para selecioná-la",w*.5f,b-9*unit,p);
     }
     private void drawHud(Canvas c) {
         p.setColor(Color.argb(218,255,255,255));c.drawRoundRect(13*unit,11*unit,232*unit,59*unit,18*unit,18*unit,p);
@@ -1083,6 +1135,13 @@ final class GameView extends View {
         p.setColor(Color.rgb(224,232,225));c.drawRoundRect(w*.405f,31*unit,w*.595f,38*unit,5*unit,5*unit,p);
         p.setShader(new LinearGradient(w*.405f,0,w*.595f,0,Color.rgb(255,207,88),Color.rgb(244,156,54),Shader.TileMode.CLAMP));c.drawRoundRect(w*.405f,31*unit,w*(.405f+.19f*prog),38*unit,5*unit,5*unit,p);p.setShader(null);
         p.setColor(Color.rgb(96,112,104));p.setTextSize(8*unit);c.drawText("PORTAL",w*.5f,49*unit,p);
+        if(state==1) {
+            float hl=w-88*unit,hr=w-10*unit,ht=h*.19f,hb=h*.30f;
+            p.setColor(Color.argb(210,255,255,255));c.drawRoundRect(hl,ht,hr,hb,13*unit,13*unit,p);
+            p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(1.3f*unit);p.setColor(Color.argb(220,255,255,255));c.drawRoundRect(hl+1*unit,ht+1*unit,hr-1*unit,hb-1*unit,12*unit,12*unit,p);p.setStyle(Paint.Style.FILL);
+            p.setColor(Color.rgb(67,99,95));p.setTextAlign(Paint.Align.CENTER);p.setTypeface(android.graphics.Typeface.create("sans-serif-rounded",1));p.setTextSize(8*unit);
+            c.drawText("INÍCIO",(hl+hr)*.5f,(ht+hb)*.5f+3*unit,p);
+        }
         if(power!=NONE) {
             p.setColor(Color.argb(222,255,255,255));c.drawRoundRect(w*.79f,11*unit,w*.98f,55*unit,17*unit,17*unit,p);
             int pc=power==FIRE?Color.rgb(236,111,52):power==FEATHER?Color.rgb(78,146,181):power==LIGHTNING?Color.rgb(175,132,34):power==SUPER_JUMP?Color.rgb(139,92,192):Color.rgb(101,138,104);
@@ -1133,12 +1192,20 @@ final class GameView extends View {
         // Em ACTION_POINTER_DOWN, as coordenadas do dedo novo estão no índice de ação;
         // getX()/getY() sem índice devolvem o dedo 0 e quebram o joystick multitoque.
         float x=e.getX(idx),y=e.getY(idx);
-        if(state==0) { if(e.getAction()==MotionEvent.ACTION_DOWN) { beginGame(); return true; } return true; }
+        if(state==0) {
+            if(e.getAction()==MotionEvent.ACTION_DOWN) {
+                if(isMenuCard(x,y,1)) { selectLevel(1); invalidate(); return true; }
+                if(isMenuCard(x,y,2)) { selectLevel(2); invalidate(); return true; }
+                if(isPlayButton(x,y)) { beginGame(); return true; }
+            }
+            return true;
+        }
         if(state==3||state==4) return true;
         if(state==2) { if(e.getAction()==MotionEvent.ACTION_DOWN) { beginGame(); return true; } return true; }
         switch(e.getActionMasked()) {
             case MotionEvent.ACTION_DOWN:
             case MotionEvent.ACTION_POINTER_DOWN:
+                if(e.getActionMasked()==MotionEvent.ACTION_DOWN && state==1 && isHomeButton(x,y)) { returnToTitle(); invalidate(); return true; }
                 if(x<w*.36f && y>h*.52f) {
                     if(stickPointer==-1) { stickPointer=id; updateStick(x,y); }
                     return true;
@@ -1226,11 +1293,14 @@ final class AudioEngine {
             if(track.getState()!=AudioTrack.STATE_INITIALIZED)return;
             track.play();
             short[] buf=new short[2048]; long sample=0;
-            int[] meadowNotes={523,659,784,659,587,698,880,698,523,659,784,988,880,784,659,587};
-            int[] caveNotes={392,440,587,523,392,349,494,440,330,392,494,587,523,440,392,349};
+            int[] meadowNotes={523,0,659,784,0,659,587,0,698,784,0,880,784,0,659,587,523,0,659,784,0,988,880,0,784,659,0,587,659,0,523,0};
+            int[] caveNotes={392,0,494,587,0,523,440,0,392,349,0,440,494,0,523,440,392,0,349,392,0,440,494,0,587,523,0,440,392,0,349,0};
+            double[] meadowRoots={130.81,110.00,87.31,98.00};
+            double[] caveRoots={98.00,87.31,73.42,82.41};
             boolean muted=false;
             while(running && generation==token) {
                 int[] notes=caveTheme?caveNotes:meadowNotes;
+                double[] roots=caveTheme?caveRoots:meadowRoots;
                 long silence=pauseUntil-System.currentTimeMillis();
                 if(silence>0) {
                     if(!muted) { track.pause(); track.flush(); muted=true; }
@@ -1239,13 +1309,21 @@ final class AudioEngine {
                 }
                 if(muted) { track.play(); muted=false; }
                 for(int i=0;i<buf.length;i++,sample++) {
-                    double sec=sample/(double)rate, beat=sec*2.0;
-                    int noteIndex=(int)beat%notes.length, chord=(int)(beat/4)%4;
-                    double freq=notes[noteIndex], phase=2*Math.PI*freq*sec;
-                    double bass= Math.sin(2*Math.PI*(chord==0?130:chord==1?164:chord==2?196:147)*sec);
-                    double melody=Math.sin(phase)+.28*Math.sin(phase*2);
-                    double env=.72+.28*Math.sin(2*Math.PI*(beat%1));
-                    buf[i]=(short)(Math.max(-1,Math.min(1,(melody*.07+bass*.035)*env))*32767);
+                    double sec=sample/(double)rate, beat=sec*1.6;
+                    int step=(int)Math.floor(beat), noteIndex=step%notes.length, chord=(step/4)%4;
+                    double beatPhase=beat-Math.floor(beat), freq=notes[noteIndex];
+                    double melody=0;
+                    if(freq>0) {
+                        double attack=Math.min(1,beatPhase*14), decay=Math.exp(-Math.max(0,beatPhase-.18)*5.2);
+                        melody=(Math.sin(2*Math.PI*freq*sec)+.16*Math.sin(4*Math.PI*freq*sec))*attack*decay;
+                    }
+                    double root=roots[chord];
+                    double pad=(Math.sin(2*Math.PI*root*sec)+.72*Math.sin(2*Math.PI*root*1.25*sec)+.54*Math.sin(2*Math.PI*root*1.5*sec));
+                    double padPulse=.72+.28*Math.sin(2*Math.PI*.18*sec);
+                    double bass=Math.sin(2*Math.PI*(root*.5)*sec)*(.38+.62*Math.exp(-beatPhase*2.6));
+                    double kick=beatPhase<.11?Math.sin(2*Math.PI*(76+beatPhase*90)*sec)*Math.exp(-beatPhase*24):0;
+                    double mix=melody*.060+pad*padPulse*.018+bass*.045+kick*.012;
+                    buf[i]=(short)(Math.max(-.42,Math.min(.42,mix))*32767);
                 }
                 if(!running || generation!=token || track.write(buf,0,buf.length)<0)break;
             }

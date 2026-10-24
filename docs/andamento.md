@@ -218,3 +218,13 @@ Este arquivo acompanha a implementação em etapas, conforme solicitado. Cada et
 - `versionCode 13`, `versionName 0.6.0`. GitHub Actions [execução #54](https://github.com/atshimura/Jogo-do-Coelho-/actions/runs/40100495114) concluiu com sucesso: Gradle, 18 testes instrumentados e smoke test no Android Emulator API 35. Nenhuma exceção fatal ou ConcurrentModificationException no Logcat.
 - APK debug `Coelhitos-v0.6.0-debug.apk`, `versionCode 13`, `versionName 0.6.0`; SHA-256: `8f9ebe72579aae83afbbb469c8dc80274b1ee10323b33f1ea616fb420e4dcf70`.
 - Artefato `Coelhitos-debug-apk` (`12563220098`, retenção de 30 dias) e evidência `Coelhitos-emulator-evidence` (`12562946094`, retenção de 14 dias) anexados à execução #54.
+
+
+### 24/10/2026 — revisão da fase 1, menu e áudio (0.6.1)
+
+- Fase 1 ampliada para 24 cenouras coletáveis: 5 próximas ao início, 5 distribuídas que já existiam e mais 14 novas espalhadas até perto do portal. Cada unidade continua valendo um disparo.
+- Auditoria da rota encontrou aves quase sobrepostas às posições de espinhos/fogo, inclusive no trecho em que o jogador precisa saltar. As 8 aves foram realocadas para corredores seguros entre obstáculos; o teste automatizado confirma distância suficiente entre todo inimigo voador e todo obstáculo terrestre da fase 1. O número e o tipo de inimigos não mudam.
+- A tela inicial agora tem cartões selecionáveis para Planície (fase 1) e Caverna (fase 2), além do botão JOGAR. O botão INÍCIO no HUD durante a fase retorna ao seletor e mantém a fase atual como seleção inicial. Começar uma partida nova reinicia vida, poder e itens.
+- A trilha sintetizada foi retrabalhada com melodia, acompanhamento harmônico, baixo e pulsação rítmica. Cada fase usa tema próprio; a seleção no menu e a transição pelo portal escolhem a música correspondente.
+- Novos testes cobrem distribuição de cenouras, espaçamento dos pássaros, seleção de cada fase, botão de retorno à tela inicial e escolha do tema musical.
+- `versionCode 14`, `versionName 0.6.1`. A versão será validada no CI com 21 testes instrumentados e teste de interação em emulador; APK e hash serão registrados após a conclusão.

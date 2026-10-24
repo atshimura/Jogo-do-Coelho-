@@ -1,7 +1,7 @@
 # Coelhitos — especificação funcional
 
-**Versão:** 1.7 — 24/10/2026
-**Estado:** fases 1 e 2 implementadas (v0.6.0); medir o tempo da fase 2 em aparelho físico permanece pendente.
+**Versão:** 1.8 — 24/10/2026
+**Estado:** fases 1 e 2 implementadas (v0.6.1); medir o tempo da fase 2 em aparelho físico permanece pendente.
 
 ## Conceito
 
@@ -13,15 +13,15 @@ Jogo de plataforma 2D lateral para celular Android, sempre em orientação horiz
 - O coelho pode escolher entre várias cores.
 - O personagem poderá encontrar cabanas abandonadas e explorá-las para achar armaduras, poderes e itens.
 - Cenouras representam a moeda do jogo para compras de armaduras e cores. Na primeira fase elas também funcionam como munição de uso único. A relação entre munição e saldo de compras fica para a especificação do sistema de loja; a primeira fase não inclui loja.
-- O baseline publicado v0.5.2 implementa somente a primeira fase. A fase 2 está aprovada para planejamento e desenvolvimento, descrita nesta especificação e em docs/fase-2-planejamento-e-handoff.md. Mundos posteriores à fase 2, cabanas, armaduras, seleção de cores e loja permanecem no backlog.
+- A versão atual inclui duas fases jogáveis. A fase 2 e seu handoff técnico estão descritos em docs/fase-2-planejamento-e-handoff.md. Mundos posteriores à fase 2, cabanas, armaduras, seleção de cores e loja permanecem no backlog.
 
 ## Primeira fase
 
 - A fase inicial é uma planície gramada com morros arredondados e seis pares de subidas e descidas retas e íngremes; o relevo afeta a altura do personagem, inimigos, objetos e colisões. O cenário tem camadas, sombras, luz suave e vegetação volumétrica para combinar com o acabamento macio e tridimensional do coelho.
+- A fase disponibiliza 24 cenouras: 5 próximas ao início e 19 distribuídas pelo percurso. Cada cenoura coletada dá um disparo.
 - A fase distribui ao longo do caminho 30 inimigos: criaturas terrestres de formatos diferentes, incluindo algumas com cauda móvel e outras com chifres, além de oito aves voadoras com cachecol e asas animadas. As criaturas no chão apoiam as patas no terreno e usam ciclos visíveis de caminhada; o corpo acompanha os passos.
 - O jogador deve levar aproximadamente 3 minutos para chegar ao portal no ritmo normal.
 - A fase contém exatamente 5 baús. Tocar em um baú concede um poder aleatório.
-- Há 5 cenouras disponíveis para coleta no começo da fase; outras cenouras aparecem pelo caminho. Cada cenoura coletada dá um disparo.
 - Obstáculos da primeira fase: espinhos e fogo. Buracos ficam reservados a fases futuras.
 - O coelho tem aproximadamente um quarto da altura útil da tela.
 
@@ -84,11 +84,14 @@ Se o coelho for atingido por um inimigo ou obstáculo enquanto estiver com um po
 
 ## Som
 
-O jogo terá trilha musical original em loop e efeitos originais para caminhada, corrida, salto, coleta de cenoura, abertura de baú, obtenção e uso de cada poder, disparos, inimigos, dano, perda de coração, reinício e chegada ao portal. Os sons são sintetizados no aplicativo.
+Cada fase tem sua própria trilha musical sintetizada em loop, com melodia, harmonia, baixo e pulsação rítmica; a Planície e a Caverna usam arranjos diferentes. Efeitos originais para caminhada, corrida, salto, coleta de cenoura, abertura de baú, obtenção e uso de cada poder, disparos, inimigos, dano, perda de coração, reinício e chegada ao portal. Os sons são sintetizados no aplicativo.
 - Ao perder um coração, a trilha faz uma pausa curta e toca um efeito descendente próprio de perda de vida. Perder apenas um poder usa o efeito de dano, sem a pausa da música.
 - Coelho, inimigos e obstáculos têm sombras e luzes em gradiente para sugerir volume e melhorar a leitura contra o cenário.
 - A interface usa painéis translúcidos, indicadores desenhados no próprio jogo, hierarquia tipográfica clara e controles circulares com símbolos e rótulos legíveis.
+- A tela inicial permite escolher a Planície (fase 1) ou a Caverna (fase 2) e iniciar pelo botão JOGAR. Durante uma fase, o botão INÍCIO do HUD retorna ao seletor.
 - O aplicativo inclui ícone próprio nos formatos adaptativo e legado do Android.
+- A tela inicial permite escolher Planície (fase 1) ou Caverna (fase 2) antes de começar. Um botão Início no HUD de jogo retorna ao seletor.
+- Cada fase possui uma composição musical sintetizada própria: melodia, acompanhamento harmônico, baixo e pulsação rítmica. Efeitos de coleta, disparos, poderes, inimigos e dano continuam distintos.
 - O projétil de Fogo tem corpo laranja, núcleo amarelo, halo e rastro; a Pena tem haste e barbas desenhadas para que os dois poderes sejam fáceis de distinguir.
 - O mascote em jogo deve manter a mesma identidade visual do coelho do ícone: pelagem branca fofa, olhos castanhos grandes, orelhas rosadas e cenoura. As poses de repouso e salto preservam o perfil lateral e o movimento em pares das patas traseiras.
 

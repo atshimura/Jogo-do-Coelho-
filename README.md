@@ -1,6 +1,6 @@
 # Coelhitos
 
-Coelhitos é um jogo de plataforma 2D para Android, em orientação horizontal. A versão 0.6.0 contém duas fases jogáveis: uma planície gramada e uma caverna colorida de cristais, com controles por toque, poderes, inimigos, corações, buracos e portais.
+Coelhitos é um jogo de plataforma 2D para Android, em orientação horizontal. A versão 0.6.1 contém duas fases jogáveis: uma planície gramada e uma caverna colorida de cristais, com controles por toque, poderes, inimigos, corações, buracos e portais.
 
 ## Construir
 
@@ -21,6 +21,7 @@ APK de depuração: `app/build/outputs/apk/debug/app-debug.apk`.
 - [Notas da versão 0.2.0](docs/release-v0.2.0.md)
 - [Notas da versão 0.2.1](docs/release-v0.2.1.md)
 - [Notas da versão 0.3.0](docs/release-v0.3.0.md)
+- [Notas da versão 0.6.1](docs/release-v0.6.1.md)
 - [Notas da versão 0.6.0](docs/release-v0.6.0.md)
 - [Handoff técnico da fase 2](docs/fase-2-planejamento-e-handoff.md)
 - [Notas da versão 0.5.0](docs/release-v0.5.0.md)

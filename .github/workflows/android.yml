@@ -62,8 +62,8 @@ jobs:
             adb shell am start -W -n com.coelhitos/.MainActivity
             sleep 3
             adb exec-out screencap -p > emulator-evidence/01-menu.png
-            # The title screen's JOGAR button is near the bottom-center.
-            adb shell input tap 640 558
+            # The title screen defaults to phase 1; tap its JOGAR FASE button.
+            adb shell input tap 640 604
             sleep 2
             # Dismiss Android's immersive-mode confirmation if it appeared.
             adb shell input tap 880 190

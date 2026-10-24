@@ -22,6 +22,13 @@ Este arquivo acompanha a implementação em etapas, conforme solicitado. Cada et
 | 14 | Tornar natural a aproximação e entrada do coelho no portal | Concluída (0.4.1) |
 | 15 | Redesenhar o cenário, diversificar inimigos, enriquecer o relevo e corrigir colisões | Concluída (0.5.0) |
 | 16 | Ajustar altura do salto, diferenciar inimigos, animar a caminhada e ampliar a complexidade da fase | Concluída (0.5.2) |
+| 17 | Consolidar a especificação da fase 2 e o pacote de handoff técnico | Concluída (planejamento; sem implementação) |
+| 18 | Desenhar e implementar a caverna de cristais e o percurso de cerca de 3 minutos | Pendente |
+| 19 | Implementar buracos, animação de queda, perda de coração e retorno seguro | Pendente |
+| 20 | Integrar três inimigos aprovados, animações naturais e projétil de semente evitável | Pendente |
+| 21 | Integrar progressão, poderes, coletáveis e portal da fase 2 | Pendente |
+| 22 | Testes de instrumentação, estabilidade, tempo da fase e ajustes visuais | Pendente |
+| 23 | Atualizar documentação de release e gerar APK da fase 2 | Pendente |
 
 ## Registro
 
@@ -183,3 +190,16 @@ Este arquivo acompanha a implementação em etapas, conforme solicitado. Cada et
 - GitHub Actions [execução #48](https://github.com/atshimura/Jogo-do-Coelho-/actions/runs/39828135547) concluiu com sucesso: Gradle e 13 testes instrumentados passaram no emulador Android API 35.
 - APK debug `Coelhitos-v0.5.2-debug.apk`, `versionCode 12`, `versionName 0.5.2`; SHA-256: `8a1904be5ec82eea12111d2351cf07da080cda443f8bae3e2258dc3e9c3b6ed8`.
 - Artefato APK `Coelhitos-debug-apk` (`12447866823`, retenção de 30 dias) e evidência `Coelhitos-emulator-evidence` (`12447122967`, retenção de 14 dias), anexados à execução #48.
+
+
+### 24/10/2026 — fase 2: decisões, arte aprovada e plano (sem implementação)
+
+- Duração aprovada: aproximadamente 3 minutos em ritmo normal.
+- Cenário aprovado: caverna colorida com cristais luminosos; subidas e descidas, buracos e obstáculos da fase 1.
+- Aprovados visualmente três inimigos: criatura vegetal terrestre que dispara sementes; besouro baixo de dorso rochoso e placas laranja; mariposa lilás voadora com quatro asas e marcas turquesa. Prancha em docs/assets/fase2-inimigos-conceito-aprovado.webp.
+- O disparo de sementes deve ser evitável com pulo. Movimentos naturais, incluindo o ciclo de patas do coelho e a batida de asas da mariposa.
+- Buracos animam a queda, causam perda de um coração e devolvem o coelho a piso seguro antes do buraco. Perder três corações reinicia a fase.
+- Mantêm-se controles, poderes, vida e objetivo do portal definidos para a fase 1.
+- Nenhum código ou APK foi alterado. Plano técnico em docs/fase-2-planejamento-e-handoff.md.
+- Próxima etapa: implementar cenário e topologia da fase 2, seguindo as etapas 18 a 23.
+

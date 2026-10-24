@@ -1,7 +1,7 @@
 # Coelhitos — especificação funcional
 
-**Versão:** 1.6 — 22/10/2026
-**Escopo inicial:** protótipo Android com a primeira fase completa.
+**Versão:** 1.7 — 24/10/2026
+**Estado:** fase 1 implementada (v0.5.2); fase 2 especificada e aprovada para planejamento, ainda sem implementação.
 
 ## Conceito
 
@@ -24,6 +24,23 @@ Jogo de plataforma 2D lateral para celular Android, sempre em orientação horiz
 - Há 5 cenouras disponíveis para coleta no começo da fase; outras cenouras aparecem pelo caminho. Cada cenoura coletada dá um disparo.
 - Obstáculos da primeira fase: espinhos e fogo. Buracos ficam reservados a fases futuras.
 - O coelho tem aproximadamente um quarto da altura útil da tela.
+
+## Segunda fase — decisões aprovadas para planejamento (ainda não implementada)
+
+A fase 2 foi aprovada em 24/10/2026. O roteiro técnico e os pontos ainda em aberto estão em [fase-2-planejamento-e-handoff.md](fase-2-planejamento-e-handoff.md).
+
+- **Duração:** cerca de 3 minutos para terminar em ritmo normal, como na fase 1.
+- **Ambiente:** caverna de fantasia, colorida, com cristais luminosos. O visual combina com o acabamento macio, arredondado e expressivo do coelho do ícone. A arte continua original.
+- **Percurso:** alterna trechos de subida e descida e inclui buracos, além dos espinhos e do fogo já existentes na fase 1. O traçado exato e a quantidade/largura de buracos serão definidos ao desenhar o nível e ajustados para o tempo-alvo.
+- **Queda em buraco:** tem animação própria, tira um coração e retorna o coelho para um ponto seguro antes daquele buraco. Esse custo não se converte apenas em perda do poder equipado. Com 3 corações perdidos, vale a regra existente de reiniciar a fase.
+- **Inimigos novos aprovados visualmente:** criatura vegetal terrestre que dispara sementes; besouro baixo com dorso rochoso e placas laranja; mariposa voadora lilás, com quatro asas visíveis e marcas turquesa. A prancha aprovada está em [docs/assets/fase2-inimigos-conceito-aprovado.webp](assets/fase2-inimigos-conceito-aprovado.webp).
+- **Ataque à distância:** o inimigo vegetal dispara sementes; o jogador consegue evitar o projétil pulando.
+- **Animação natural:** movimentos do coelho, dos inimigos e de partes móveis devem ser contínuos e coerentes com a anatomia. A marcha quadrúpede do coelho mantém pequenos impulsos das patas traseiras juntas; inimigos terrestres apoiam e alternam as patas no terreno; a mariposa bate as asas em ciclo visível.
+- **Regras herdadas:** manter controles, poderes e sistema de corações da fase 1; a conclusão continua sendo entrar calmamente no portal ao final. Conservar probabilidades e efeitos dos poderes existentes, salvo problema demonstrado no balanceamento.
+
+### Parâmetros a definir durante o desenho do nível
+
+Não são bloqueios para começar. Documentar as escolhas de detalhe: quantidade e posição de inimigos, baús e coletáveis; espaçamento/largura de buracos; comportamento de patrulha; tempo de aviso do disparo; e música/ambiente da caverna. Começar com os valores da fase 1 quando forem compatíveis e calibrar para 3 minutos sem alterar as decisões aprovadas.
 
 ## Movimento e controles
 

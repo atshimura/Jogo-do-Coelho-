@@ -15,6 +15,7 @@ APK de depuração: `app/build/outputs/apk/debug/app-debug.apk`.
 ## Documentação
 
 - [Especificação funcional](docs/especificacao.md)
+- [Fase 2 — planejamento e handoff](docs/fase-2-planejamento-e-handoff.md)
 - [Etapas e andamento](docs/andamento.md)
 - [Notas da versão 0.1.2](docs/release-v0.1.2.md)
 - [Notas da versão 0.1.3](docs/release-v0.1.3.md)

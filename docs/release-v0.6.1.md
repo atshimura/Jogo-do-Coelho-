@@ -11,5 +11,7 @@
 
 - `versionCode`: 14
 - `versionName`: 0.6.1
-- Build/testes instrumentados/emulador: aguardando workflow.
-- APK e SHA-256: serão registrados após o workflow.
+- GitHub Actions [execução #56](https://github.com/atshimura/Jogo-do-Coelho-/actions/runs/40106779116) concluiu com sucesso: Gradle, Android Emulator API 35 e **21/21 testes instrumentados**.
+- O Logcat do teste não apresentou `FATAL EXCEPTION` ou `ConcurrentModificationException`; a evidência capturou a tela de seleção e o gameplay com o botão INÍCIO visível.
+- APK `Coelhitos-debug-apk`, artefato `12565112159`, retenção de 30 dias. Evidência `Coelhitos-emulator-evidence`, artefato `12565082262`, retenção de 14 dias.
+- SHA-256 do APK: `f036a60bac368d86c82f97c3d07461fa2b87d6a88add76c8f4e26487d00eaa42`.
